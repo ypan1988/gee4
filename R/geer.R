@@ -242,17 +242,19 @@ optimizeGeer <- function(m, Y, X, Z, W, time, corr.struct, rho, control, start)
     start <- c(bta0, lmd0, gma0)
   }
 
-  if (corr.struct == 'id') {
-    est <- geerfit_id(m, Y, X, Z, W, rho, start, control$trace, control$profile, control$errorMsg)
-  }
-
-  if (corr.struct == 'cs') {
-    est <- geerfit_cs(m, Y, X, Z, W, rho, start, control$trace, control$profile, control$errorMsg)
-  }
-
-  if (corr.struct == 'ar1') {
-    est <- geerfit_ar1(m, Y, X, Z, W, rho, start, control$trace, control$profile, control$errorMsg)
-  }
+  est <- gees_estimation(m, Y, X, Z, W, corr.struct, rho, start, control$trace, control$profile, control$errorMsg)
+  
+  # if (corr.struct == 'id') {
+  #   est <- geerfit_id(m, Y, X, Z, W, rho, start, control$trace, control$profile, control$errorMsg)
+  # }
+  # 
+  # if (corr.struct == 'cs') {
+  #   est <- geerfit_cs(m, Y, X, Z, W, rho, start, control$trace, control$profile, control$errorMsg)
+  # }
+  # 
+  # if (corr.struct == 'ar1') {
+  #   est <- geerfit_ar1(m, Y, X, Z, W, rho, start, control$trace, control$profile, control$errorMsg)
+  # }
 
   if (!(control$ignore.const.term)) {
     const.term = - sum(m) * 0.5 * log(2 * pi)
