@@ -13,7 +13,7 @@ struct NRfmin {
   T &func;
   NRfmin(T &funcc) : func(funcc) {}
   double operator()(const arma::vec &x) {
-    arma::uword n = x.n_elem;
+    /* arma::uword n = x.n_elem; */
     fvec = func(x);
     double sum = arma::as_scalar(fvec.t() * fvec);
     return 0.5 * sum;
@@ -75,13 +75,13 @@ class Newton : public LineSearch<NRfmin<T>> {
     double sum = arma::as_scalar(x.t() * x);
     double stpmax = kStpMax * std::max(std::sqrt(sum), (double)n);
 
-    double fold = 0.0;
+    // double fold = 0.0;
     arma::mat fjac = arma::zeros<arma::mat>(n, n);
     for (arma::uword iter = 0; iter < kMaxIters; ++iter) {
       fjac = fdjac(x, fvec);
       arma::vec g = fjac.t() * fvec;
       arma::vec xold = x;
-      fold = f;
+      // fold = f;
       arma::vec p = -fvec;
 
       //p = arma::solve(fjac, p);

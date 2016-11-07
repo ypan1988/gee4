@@ -14,7 +14,7 @@ Rcpp::List geerfit_id(arma::uvec m,
                       bool trace = false,
                       bool profile = true,
                       bool errorMsg = false) {
-  int debug = 1;
+  //int debug = 1;
 
   int n_bta = X.n_cols;
   int n_lmd = Z.n_cols;
