@@ -31,55 +31,55 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
   int n_iters  = 0;
 
 ////////////////////////////////////////////////////
-if (profile) {
-  if(debug) {
-    Rcpp::Rcout << "Start profile optimization ... " << std::endl;
-    x.print("start value: ");
-  }
+  if (profile) {
+    if(debug) {
+      Rcpp::Rcout << "Start profile optimization ... " << std::endl;
+      x.print("start value: ");
+    }
   
-  const int kIterMax = 200; // Maximum number of iterations
-  const double kEpsilon = std::numeric_limits<double>::epsilon(); // Machine precision
-  const double kTolX = 4 * kEpsilon; // Convergence criterion on x values
-  const double kScaStepMax = 100; // Scaled maximum step length allowed in line searches
-  const double grad_tol = 1e-6;
-  const int n_pars = x.n_rows;  // number of parameters
- 
-  dragonwell::NRfmin<gee::gee_jmcm> geef(gees);
-  double f = geef(x);
-  arma::vec grad;
-  grad = gees(x); 
-
-  // Initialize the inverse Hessian to a unit matrix
-  arma::mat hess_inv = arma::eye<arma::mat>(n_pars, n_pars);
-
-  // Initialize Newton Step
-  arma::vec p = -hess_inv * grad;
+    const int kIterMax = 200; // Maximum number of iterations
+    const double kEpsilon = std::numeric_limits<double>::epsilon(); // Machine precision
+    const double kTolX = 4 * kEpsilon; // Convergence criterion on x values
+    const double kScaStepMax = 100; // Scaled maximum step length allowed in line searches
+    const double grad_tol = 1e-6;
+    const int n_pars = x.n_rows;  // number of parameters
+    
+    dragonwell::NRfmin<gee::gee_jmcm> geef(gees);
+    double f = geef(x);
+    arma::vec grad;
+    grad = gees(x); 
+    
+    // Initialize the inverse Hessian to a unit matrix
+    arma::mat hess_inv = arma::eye<arma::mat>(n_pars, n_pars);
+    
+    // Initialize Newton Step
+    arma::vec p = -hess_inv * grad;
+    
+    // Initialize the maximum step length
+    double sum = sqrt(arma::dot(x, x));
+    const double kStepMax = kScaStepMax * std::max(sum, static_cast<double>(n_pars));
+    
+    if (debug) Rcpp::Rcout << "Before for loop" << std::endl; 
   
-  // Initialize the maximum step length
-  double sum = sqrt(arma::dot(x, x));
-  const double kStepMax = kScaStepMax * std::max(sum, static_cast<double>(n_pars));
-  
-  if (debug) Rcpp::Rcout << "Before for loop" << std::endl; 
-  
-  // Main loop over the iterations
-  for (int iter = 0; iter != kIterMax; ++iter) {
-    if (debug) Rcpp::Rcout << "iter " << iter << ":" << std::endl;
+    // Main loop over the iterations
+    for (int iter = 0; iter != kIterMax; ++iter) {
+      if (debug) Rcpp::Rcout << "iter " << iter << ":" << std::endl;
       n_iters = iter;
       arma::vec x2 = x;   // Save the old point
-
-      linesearch.GetStep(geef, x, p, kStepMax);
+      
+      linesearch.GetStep(geef, &f, &x, grad, p, kStepMax);
       
       f = geef(x);  // Update function value
       p = x - x2;  // Update line direction
       x2 = x;
       //f_min = f;
-
+      
       if (trace) {
         Rcpp::Rcout << std::setw(5) << iter << ": "
                     << std::setw(10) << geef(x) << ": ";
         x.t().print();
       }
-
+      
       if (debug) Rcpp::Rcout << "Checking convergence..." << std::endl;
       // Test for convergence on Delta x
       double test = 0.0;
@@ -95,39 +95,43 @@ if (profile) {
         }
         break;
       }
- 
+      
       arma::vec grad2 = grad;  // Save the old gradient
       grad = gees(x);          // Get the new gradient
-  
+      
       // Test for convergence on zero gradient
       test = 0.0;
       double den = std::max(f, 1.0);
       for (int i = 0; i != n_pars; ++i) {
-      double temp = std::abs(grad(i)) * std::max(std::abs(x(i)), 1.0) / den;
+	double temp = std::abs(grad(i)) * std::max(std::abs(x(i)), 1.0) / den;
         if (temp > test) test = temp;
       }
       if (test < grad_tol) {
         if (debug)
           Rcpp::Rcout << "Test for convergence on zero gradient: converged."
                       << std::endl;
-          break;
+	break;
       }
       
       if (debug) Rcpp::Rcout << "Update beta..." << std::endl;
       gees.UpdateBeta();
-
+      
       if (debug) Rcpp::Rcout << "Update lambda..." << std::endl;
       gees.UpdateLambda();
- 
+      
       if (debug) Rcpp::Rcout << "Update gamma..." << std::endl;
       gees.UpdateGamma();
-  } // for loop
 
-  ///////////////////////////////
-  
-  newt.Optimize(x, 1.0e-6, trace);
-  //f_min = newt.f_min();
-  n_iters = newt.n_iters();
+      if (debug) Rcpp::Rcout << "Update theta..." << std::endl;
+      arma::vec xnew = gees.get_theta();
+      
+      p = xnew - x;
+    } // for loop
+  } else {
+    newt.Optimize(x, 1.0e-6, trace);
+    //f_min = newt.f_min();
+    n_iters = newt.n_iters();
+  }
 
   arma::vec beta   = x.rows(0, n_bta-1);
   arma::vec lambda = x.rows(n_bta, n_bta+n_lmd-1);

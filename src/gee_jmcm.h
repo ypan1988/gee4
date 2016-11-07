@@ -74,9 +74,18 @@ namespace gee {
       if (debug) Rcpp::Rcout << "gee_jmcm object created" << std::endl;
     }
     ~gee_jmcm(){};
-
+    
+    inline void set_free_param(const int n);
+    
     inline void set_params(const arma::vec &x);
-
+    inline arma::vec get_theta() const;
+    inline void set_beta(const arma::vec &beta);
+    inline arma::vec get_beta() const;
+    inline void set_lambda(const arma::vec &lambda);
+    inline arma::vec get_lambda() const;
+    inline void set_gamma(const arma::vec &gamma);
+    inline arma::vec get_gamma() const;
+    
     arma::vec operator()(const arma::vec &x);
 
     void UpdateGEES(const arma::vec &x);
@@ -151,27 +160,64 @@ namespace gee {
 			  const gee_corr_mode &corr_mode, const double rho);
   };
 
+  void gee_jmcm::set_free_param(const int n) { free_param_ = n; }
+  
   void gee_jmcm::set_params(const arma::vec &x) {
-    int debug = 0;
-    if (debug) Rcpp::Rcout << "inside of set_params" << std::endl;
-    arma::uword lbta = X_.n_cols;
-    arma::uword llmd = Z_.n_cols;
-    arma::uword lgma = W_.n_cols;
-    if (x.n_elem != (lbta + llmd + lgma))
-      Rcpp::Rcerr << "gee_jmcm::set_params(): give vector has wrong dimension"
-		  << std::endl;
 
-    bta_ = x.rows(0, lbta - 1);
-    lmd_ = x.rows(lbta, lbta + llmd - 1);
-    gma_ = x.rows(lbta + llmd, lbta + llmd + lgma - 1);
+    int fp2 = free_param_;
+    free_param_ = 1;
+    UpdateGEES(x);
+    free_param_ = fp2;
+    
+    /* int debug = 0; */
+    /* if (debug) Rcpp::Rcout << "inside of set_params" << std::endl; */
+    /* arma::uword lbta = X_.n_cols; */
+    /* arma::uword llmd = Z_.n_cols; */
+    /* arma::uword lgma = W_.n_cols; */
+    /* if (x.n_elem != (lbta + llmd + lgma)) */
+    /*   Rcpp::Rcerr << "gee_jmcm::set_params(): give vector has wrong dimension" */
+    /* 		  << std::endl; */
 
-    if (debug) Rcpp::Rcout << "set_param update" << std::endl;
+    /* bta_ = x.rows(0, lbta - 1); */
+    /* lmd_ = x.rows(lbta, lbta + llmd - 1); */
+    /* gma_ = x.rows(lbta + llmd, lbta + llmd + lgma - 1); */
 
-    Xbta_ = X_ * bta_;
-    Zlmd_ = Z_ * lmd_;
-    Wgma_ = W_ * gma_;
-    Resid_ = Y_ - Xbta_;
+    /* if (debug) Rcpp::Rcout << "set_param update" << std::endl; */
+
+    /* Xbta_ = X_ * bta_; */
+    /* Zlmd_ = Z_ * lmd_; */
+    /* Wgma_ = W_ * gma_; */
+    /* Resid_ = Y_ - Xbta_; */
   }
+
+  arma::vec gee_jmcm::get_theta() const { return tht_; }
+
+  void gee_jmcm::set_beta(const arma::vec& x) {
+    int fp2 = free_param_;
+    free_param_ = 1;
+    UpdateGEES(x);
+    free_param_ = fp2;
+  }
+
+  arma::vec gee_jmcm::get_beta() const { return bta_; }
+
+  void gee_jmcm::set_lambda(const arma::vec& x) {
+    int fp2 = free_param_;
+    free_param_ = 2;
+    UpdateGEES(x);
+    free_param_ = fp2;
+  }
+
+  arma::vec gee_jmcm::get_lambda() const { return lmd_; }
+
+  void gee_jmcm::set_gamma(const arma::vec& x) {
+    int fp2 = free_param_;
+    free_param_ = 3;
+    UpdateGEES(x);
+    free_param_ = fp2;
+  }
+
+  arma::vec gee_jmcm::get_gamma() const { return gma_; }
 
   arma::uword gee_jmcm::get_m(const arma::uword i) const { return m_(i); }
 

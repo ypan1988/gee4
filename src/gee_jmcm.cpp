@@ -11,16 +11,16 @@ namespace gee {
 
     switch (free_param_) {
     case 0:
-      if (arma::min(x == theta_) == 1) update = false;
+      if (arma::min(x == tht_) == 1) update = false;
       break;
     case 1:
-      if (arma::min(x == beta_) == 1) update = false;
+      if (arma::min(x == bta_) == 1) update = false;
       break;
-    case2:
-      if (arma::min(x == lambda_) == 1) update = false;
+    case 2:
+      if (arma::min(x == lmd_) == 1) update = false;
       break;
     case 3:
-      if (arma::min(x == gamma_) == 1) update = false;
+      if (arma::min(x == gma_) == 1) update = false;
       break;
     default:
       Rcpp::Rcout << "Wrong value for free_param_" << std::endl;
@@ -42,25 +42,25 @@ namespace gee {
 
     switch (free_param_) {
     case 0:
-      theta_ = x;
-      beta_ = x.rows(0, n_bta - 1);
-      lambda_ = x.rows(n_bta, n_bta + n_lmd - 1);
-      gamma_ = x.rows(n_bta + n_lmd, n_bta + n_lmd + n_gma - 1);
+      tht_ = x;
+      bta_ = x.rows(0, n_bta - 1);
+      lmd_ = x.rows(n_bta, n_bta + n_lmd - 1);
+      gma_ = x.rows(n_bta + n_lmd, n_bta + n_lmd + n_gma - 1);
       break;
 
     case 1:
-      theta_.rows(0, n_bta - 1) = x;
-      beta_ = x;
+      tht_.rows(0, n_bta - 1) = x;
+      bta_ = x;
       break;
 
     case 2:
-      theta_.rows(n_bta, n_bta + n_lmd - 1) = x;
-      lambda_ = x;
+      tht_.rows(n_bta, n_bta + n_lmd - 1) = x;
+      lmd_ = x;
       break;
 
     case 3:
-      theta_.rows(n_bta + n_lmd, n_bta + n_lmd + n_gma - 1) = x;
-      gamma_ = x;
+      tht_.rows(n_bta + n_lmd, n_bta + n_lmd + n_gma - 1) = x;
+      gma_ = x;
       break;
 
     default:
@@ -78,42 +78,42 @@ namespace gee {
     case 0:
       // if (cov_only_) Xbta_ = mean_;
       // else Xbta_ = X_ * beta_;
-      Xbta_ = X_ * beta_;
-      Zlmd_ = Z_ * lambda_;
-      Wgma_ = W_ * gamma_;
+      Xbta_ = X_ * bta_;
+      Zlmd_ = Z_ * lmd_;
+      Wgma_ = W_ * gma_;
       Resid_ = Y_ - Xbta_;
 
       /*
-      if (debug) Rcpp::Rcout << "UpdateG(x)" << std::endl;
-      UpdateG();
-      if (debug) Rcpp::Rcout << "UpdateTResid(x)" << std::endl;
-      UpdateTResid();
-      if (debug) Rcpp::Rcout << "Update Finished.." << std::endl;
+	if (debug) Rcpp::Rcout << "UpdateG(x)" << std::endl;
+	UpdateG();
+	if (debug) Rcpp::Rcout << "UpdateTResid(x)" << std::endl;
+	UpdateTResid();
+	if (debug) Rcpp::Rcout << "Update Finished.." << std::endl;
       */
       break;
 
     case 1:
       // if (cov_only_) Xbta_ = mean_;
       // else Xbta_ = X_ * beta_;
-      Xbta_ = X_ * beta_;
+      Xbta_ = X_ * bta_;
       Resid_ = Y_ - Xbta_;
 
       /*
-      UpdateG();
-      UpdateTResid();
+	UpdateG();
+	UpdateTResid();
       */
       break;
 
     case 2:
-      Zlmd_ = Z_ * lambda_;
+      Zlmd_ = Z_ * lmd_;
 
       break;
 
     case 3:
-      Wgma_ = W_ * gamma_;
+      Wgma_ = W_ * gma_;
 
       /*
-      UpdateTResid();
+	UpdateTResid();
       */
       break;
 
@@ -124,14 +124,16 @@ namespace gee {
   
   //// NEW FUNCTION 
   void gee_jmcm::UpdateBeta() {
-    arma::uword n_sub = m_.n_elem; 
+    arma::uword n_sub = m_.n_elem;
+    arma::mat bta_lhs;
+    arma::vec bta_rhs;
     for (arma::uword i = 0; i != n_sub; ++i) {
-
+      arma::vec ri = get_Resid(i);
       arma::mat Sigmai_inv = get_Sigma_inv(i);
 
       arma::mat deriv1;
       arma::vec yi_tilde;
-      if (link_mode == identity_link) {
+      if (link_mode_ == identity_link) {
 	deriv1 = get_X(i).t();
 	yi_tilde = get_Y(i);
       }
@@ -146,28 +148,74 @@ namespace gee {
 
   /////// TO DO!!!!
   void gee_jmcm::UpdateLambda() {
-    arma::mat Ai_sqrt_inv = 1 / arma::datum::sqrt2 * Di_inv;
-    arma::mat Ri_inv;
-    //if (debug) Ai_sqrt_inv.print("Ai_inv = ");
-    if (corr_mode_ == Identity_corr) Ri_inv = arma::eye(mi, mi);
-    if (corr_mode_ == CompSymm_corr) Ri_inv = dragonwell::corr_cs(rho_, mi).i();
-    //  Ri_inv = dragonwell::corr_cs(rho_, mi).i();
-    if (corr_mode_ == AR1_corr) Ri_inv = dragonwell::corr_ar1(rho_, mi).i();
-    arma::mat cov_inv = Ai_sqrt_inv * Ri_inv * Ai_sqrt_inv;
-    arma::mat deriv2 = get_Z(i).t();
-    for (arma::uword t = 1; t <= mi; ++t) {
-      deriv2.col(t - 1) *= arma::as_scalar(di(t - 1));
-    }
-    if (debug) Rcpp::Rcout << "fs_update for update gma part1" << std::endl;
-    arma::vec epsi2 = arma::pow(Ti * ri, 2);
-    arma::vec epsi2_tilde = epsi2 - di2 + Di * logdi2;
-    if (debug) Rcpp::Rcout << "fs_update for update gma part2" << std::endl;
+    arma::uword n_sub = m_.n_elem; 
+    arma::mat lmd_lhs;
+    arma::vec lmd_rhs;
+    for (arma::uword i = 0; i != n_sub; ++i) {
+      arma::uword mi = m_(i);
+      arma::vec ri = get_Resid(i);
+      arma::mat Ti = get_T(i);
+      arma::mat Di = get_D(i);
+      arma::vec di = Di.diag();
+      arma::vec di2 = arma::pow(Di.diag(), 1);
+      arma::vec logdi2 = arma::log(arma::pow(Di.diag(), 1));
+      arma::mat Di_inv = arma::diagmat(arma::pow(Di.diag(), -1));
     
-    gee_lmd += deriv2 * cov_inv * (epsi2 - di2);
+      arma::mat Ai_sqrt_inv = 1 / arma::datum::sqrt2 * Di_inv;
+      arma::mat Ri_inv;
+    
+      if (corr_mode_ == Identity_corr) Ri_inv = arma::eye(mi, mi);
+      else if (corr_mode_ == CompSymm_corr) Ri_inv = dragonwell::corr_cs(rho_, mi).i();
+      else if (corr_mode_ == AR1_corr) Ri_inv = dragonwell::corr_ar1(rho_, mi).i();
+    
+      arma::mat cov_inv = Ai_sqrt_inv * Ri_inv * Ai_sqrt_inv;
+      arma::mat deriv2 = get_Z(i).t();
+      for (arma::uword t = 1; t <= mi; ++t) {
+	deriv2.col(t - 1) *= arma::as_scalar(di(t - 1));
+      }
+    
+      arma::vec epsi2 = arma::pow(Ti * ri, 2);
+      arma::vec epsi2_tilde = epsi2 - di2 + Di * logdi2;
+    
+      lmd_lhs += deriv2 * cov_inv * deriv2.t();
+      lmd_rhs += deriv2 * cov_inv * epsi2_tilde;
+    }
+
+    arma::vec lambda = lmd_lhs.i() * lmd_rhs;
+
+    set_lambda(lambda);    
   }
 
   //////// TO DO!!!!
   void gee_jmcm::UpdateGamma() {
+    arma::uword n_sub = m_.n_elem;
+    arma::uword lgma = W_.n_cols;
+    arma::mat gma_lhs;
+    arma::vec gma_rhs;
+    for (arma::uword i = 0; i != n_sub; ++i) {
+      arma::uword mi = m_(i);
+      arma::mat Wi = get_W(i);
+      arma::vec ri = get_Resid(i);
+      arma::mat Di = get_D(i);
+      arma::mat Di_inv = arma::diagmat(arma::pow(Di.diag(), -1));
+      
+      arma::uword rindex = 0;
+      
+      arma::mat deriv3 = arma::zeros<arma::mat>(lgma, mi);
+      for (arma::uword j = 2; j <= mi; ++j) {
+	for (arma::uword k = 1; k <= (j - 1); ++k) {
+	  deriv3.col(j - 1) += ri(k - 1) * Wi.row(rindex).t();
+	  ++rindex;
+	}
+      }
+      
+      gma_lhs += deriv3 * Di_inv * deriv3.t();
+      gma_rhs += deriv3 * Di_inv * ri;
+    }
+
+    arma::vec gamma = gma_lhs.i() * gma_rhs;
+
+    set_gamma(gamma);
   }
 
   arma::vec gee_jmcm::operator()(const arma::vec &x) {
