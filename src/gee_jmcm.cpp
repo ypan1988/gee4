@@ -125,8 +125,10 @@ namespace gee {
   //// NEW FUNCTION 
   void gee_jmcm::UpdateBeta() {
     arma::uword n_sub = m_.n_elem;
-    arma::mat bta_lhs;
-    arma::vec bta_rhs;
+    arma::uword n_bta = X_.n_cols;
+    
+    arma::mat bta_lhs = arma::zeros<arma::mat>(n_bta, n_bta);
+    arma::vec bta_rhs = arma::zeros<arma::vec>(n_bta);
     for (arma::uword i = 0; i != n_sub; ++i) {
       arma::vec ri = get_Resid(i);
       arma::mat Sigmai_inv = get_Sigma_inv(i);
@@ -137,7 +139,7 @@ namespace gee {
 	deriv1 = get_X(i).t();
 	yi_tilde = get_Y(i);
       }
-      bta_lhs += deriv1 * Sigmai_inv * ri;
+      bta_lhs += deriv1 * Sigmai_inv * deriv1.t();
       bta_rhs += deriv1 * Sigmai_inv * yi_tilde;
     }
 
@@ -148,9 +150,11 @@ namespace gee {
 
   /////// TO DO!!!!
   void gee_jmcm::UpdateLambda() {
-    arma::uword n_sub = m_.n_elem; 
-    arma::mat lmd_lhs;
-    arma::vec lmd_rhs;
+    arma::uword n_sub = m_.n_elem;
+    arma::uword n_lmd = Z_.n_cols;
+    
+    arma::mat lmd_lhs = arma::zeros<arma::mat>(n_lmd, n_lmd);
+    arma::vec lmd_rhs = arma::zeros<arma::vec>(n_lmd);
     for (arma::uword i = 0; i != n_sub; ++i) {
       arma::uword mi = m_(i);
       arma::vec ri = get_Resid(i);
@@ -190,8 +194,9 @@ namespace gee {
   void gee_jmcm::UpdateGamma() {
     arma::uword n_sub = m_.n_elem;
     arma::uword lgma = W_.n_cols;
-    arma::mat gma_lhs;
-    arma::vec gma_rhs;
+
+    arma::mat gma_lhs = arma::zeros<arma::mat>(lgma, lgma);
+    arma::vec gma_rhs = arma::zeros<arma::vec>(lgma);
     for (arma::uword i = 0; i != n_sub; ++i) {
       arma::uword mi = m_(i);
       arma::mat Wi = get_W(i);
