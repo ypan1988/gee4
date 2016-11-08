@@ -10,16 +10,20 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
 			   bool trace = false, bool profile = true, bool errorMsg = false)
 {
   int debug = 1;
+
+  if (debug) Rcpp::Rcout << "gees_estimation(): " << std::endl;
   
   int n_bta = X.n_cols;
   int n_lmd = Z.n_cols;
   int n_gma = W.n_cols;
 
+  if (debug) Rcpp::Rcout << "gees_estimation(): setting corr_mode..." << std::endl;
   gee_corr_mode corr_mode(0);
   if (corrStruct == "id") corr_mode.setid(1);
   else if (corrStruct == "cs") corr_mode.setid(2);
   else if (corrStruct == "ar1") corr_mode.setid(3);
-  
+
+  if (debug) Rcpp::Rcout << "gees_estimation(): creating gees object..." << std::endl;
   gee::gee_jmcm gees(m, Y, X, Z, W, rho, identity_link, corr_mode);
   dragonwell::Newton<gee::gee_jmcm> newt(gees);
   dragonwell::LineSearch<dragonwell::NRfmin<gee::gee_jmcm>> linesearch;
@@ -33,8 +37,8 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
 ////////////////////////////////////////////////////
   if (profile) {
     if(debug) {
-      Rcpp::Rcout << "Start profile optimization ... " << std::endl;
-      x.print("start value: ");
+      Rcpp::Rcout << "gees_estimation(): Start profile optimization ... " << std::endl;
+      x.t().print("start value: ");
     }
   
     const int kIterMax = 200; // Maximum number of iterations
@@ -47,13 +51,15 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
     dragonwell::NRfmin<gee::gee_jmcm> geef(gees);
     double f = geef(x);
     arma::vec grad;
-    grad = gees(x); 
+    grad = gees(x);
+    if (debug) grad.t().print("initial Gradient: ");
     
     // Initialize the inverse Hessian to a unit matrix
     arma::mat hess_inv = arma::eye<arma::mat>(n_pars, n_pars);
     
     // Initialize Newton Step
     arma::vec p = -hess_inv * grad;
+    if (debug) p.t().print("initial Newton Step: ");
     
     // Initialize the maximum step length
     double sum = sqrt(arma::dot(x, x));
@@ -68,6 +74,7 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
       arma::vec x2 = x;   // Save the old point
       
       linesearch.GetStep(geef, &f, &x, grad, p, kStepMax);
+      if(debug) x.t().print("x = ");
       
       f = geef(x);  // Update function value
       p = x - x2;  // Update line direction
@@ -128,6 +135,7 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
       p = xnew - x;
     } // for loop
   } else {
+    if (debug) Rcpp::Rcout << "gees_estimation(): starting non-profile estimation..." << std::endl;
     newt.Optimize(x, 1.0e-6, trace);
     //f_min = newt.f_min();
     n_iters = newt.n_iters();

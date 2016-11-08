@@ -220,6 +220,9 @@ namespace gee {
 
   arma::vec gee_jmcm::operator()(const arma::vec &x) {
     int debug = 0;
+
+    if (debug) Rcpp::Rcout << "gee_jmcm::operator(): initializing..." << std::endl;
+    
     set_params(x);
 
     arma::uword n_sub = m_.n_elem;
@@ -231,8 +234,9 @@ namespace gee {
     arma::vec gee_lmd = arma::zeros<arma::vec>(llmd);
     arma::vec gee_gma = arma::zeros<arma::vec>(lgma);
 
+    if (debug) Rcpp::Rcout << "gee_jmcm::operator(): calculating three GEEs..." << std::endl; 
     for (arma::uword i = 0; i < n_sub; ++i) {
-      if (debug) Rcpp::Rcout << "iter " << i << std::endl;
+      // if (debug) Rcpp::Rcout << "iter " << i << std::endl;
 
       arma::uword mi = m_(i);
       arma::vec ri = get_Resid(i);
@@ -243,16 +247,14 @@ namespace gee {
       arma::vec logdi2 = arma::log(arma::pow(Di.diag(), 1));
       arma::mat Di_inv = arma::diagmat(arma::pow(Di.diag(), -1));
       arma::mat Sigmai_inv = get_Sigma_inv(i);
-
-      if (debug) Rcpp::Rcout << "initialized" << std::endl;
-
+ 
       arma::mat deriv1;
       if (link_mode_ == identity_link) {
 	deriv1 = get_X(i).t();
       }
       gee_bta += deriv1 * Sigmai_inv * ri;
 
-      if (debug) Rcpp::Rcout << "update gee_gma" << std::endl;
+      // if (debug) Rcpp::Rcout << "update gee_gma" << std::endl;
 
       arma::mat Ai_sqrt_inv = 1 / arma::datum::sqrt2 * Di_inv;
       arma::mat Ri_inv;
@@ -266,13 +268,13 @@ namespace gee {
       for (arma::uword t = 1; t <= mi; ++t) {
 	deriv2.col(t - 1) *= arma::as_scalar(di(t - 1));
       }
-      if (debug) Rcpp::Rcout << "fs_update for update gma part1" << std::endl;
+      
       arma::vec epsi2 = arma::pow(Ti * ri, 2);
       arma::vec epsi2_tilde = epsi2 - di2 + Di * logdi2;
-      if (debug) Rcpp::Rcout << "fs_update for update gma part2" << std::endl;
+      
 
       gee_lmd += deriv2 * cov_inv * (epsi2 - di2);
-      if (debug) Rcpp::Rcout << "update gee_lmd" << std::endl;
+      // if (debug) Rcpp::Rcout << "update gee_lmd" << std::endl;
 
       arma::mat Wi = get_W(i);
       arma::uword rindex = 0;
@@ -285,8 +287,8 @@ namespace gee {
       }
 
       gee_gma += deriv3 * Di_inv * (Ti * ri);
-      if (debug) Rcpp::Rcout << "update gee_gma" << std::endl;
-      if (debug) Rcpp::Rcout << "m length = " << m_.n_elem << std::endl;
+      // if (debug) Rcpp::Rcout << "update gee_gma" << std::endl;
+      // if (debug) Rcpp::Rcout << "m length = " << m_.n_elem << std::endl;
 
     }
     arma::vec result = dragonwell::join_vecs({gee_bta,gee_lmd,gee_gma});

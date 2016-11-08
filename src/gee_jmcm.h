@@ -68,7 +68,23 @@ namespace gee {
     m_(m),Y_(Y),X_(X),Z_(Z),W_(W), rho_(rho),
       link_mode_(link_mode), corr_mode_(corr_mode){
 
-      int debug = 0;    
+      int debug = 0;
+
+      int N = Y_.n_rows;
+      int n_bta = X_.n_cols;
+      int n_lmd = Z_.n_cols;
+      int n_gma = W_.n_cols;
+      
+      tht_ = arma::zeros<arma::vec>(n_bta + n_lmd + n_gma);
+      bta_ = arma::zeros<arma::vec>(n_bta);
+      lmd_ = arma::zeros<arma::vec>(n_lmd);
+      gma_ = arma::zeros<arma::vec>(n_gma);
+      
+      Xbta_ = arma::zeros<arma::vec>(N);
+      Zlmd_ = arma::zeros<arma::vec>(N);
+      Wgma_ = arma::zeros<arma::vec>(W_.n_rows);
+      Resid_ = arma::zeros<arma::vec>(N);
+
       free_param_ = 0;
 
       if (debug) Rcpp::Rcout << "gee_jmcm object created" << std::endl;
@@ -165,7 +181,7 @@ namespace gee {
   void gee_jmcm::set_params(const arma::vec &x) {
 
     int fp2 = free_param_;
-    free_param_ = 1;
+    free_param_ = 0;
     UpdateGEES(x);
     free_param_ = fp2;
     
