@@ -72,8 +72,6 @@ namespace gee {
   void gee_jmcm::UpdateModel() {
     int debug = 0;
 
-    if (debug) Rcpp::Rcout << "update Xbta Zlmd Wgam r" << std::endl;
-
     switch (free_param_) {
     case 0:
       // if (cov_only_) Xbta_ = mean_;
@@ -82,7 +80,8 @@ namespace gee {
       Zlmd_ = Z_ * lmd_;
       Wgma_ = W_ * gma_;
       Resid_ = Y_ - Xbta_;
-
+      if (debug) Rcpp::Rcout << "update Xbta Zlmd Wgam r" << std::endl;
+      
       /*
 	if (debug) Rcpp::Rcout << "UpdateG(x)" << std::endl;
 	UpdateG();
@@ -97,6 +96,7 @@ namespace gee {
       // else Xbta_ = X_ * beta_;
       Xbta_ = X_ * bta_;
       Resid_ = Y_ - Xbta_;
+      if (debug) Rcpp::Rcout << "gees_jmcm::UpdateModel(): Resid_ updated" << std::endl;
 
       /*
 	UpdateG();
@@ -106,12 +106,14 @@ namespace gee {
 
     case 2:
       Zlmd_ = Z_ * lmd_;
-
+      if (debug) Rcpp::Rcout << "gees_jmcm::UpdateModel(): Zlmd_ updated" << std::endl;
+      
       break;
 
     case 3:
       Wgma_ = W_ * gma_;
-
+      if (debug) Rcpp::Rcout << "gees_jmcm::UpdateModel(): Wgma_ updated" << std::endl;
+      
       /*
 	UpdateTResid();
       */
