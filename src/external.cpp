@@ -10,7 +10,7 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
 			   bool trace = false, bool profile = true, bool errorMsg = false)
 {
   int debug = 0;
-  int debug_test = 1; 
+  int debug_test = 0; 
 
   if (debug) Rcpp::Rcout << "gees_estimation(): " << std::endl;
   
@@ -48,9 +48,10 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
     const double kTolMin = 1.0e-12;	// criterion for deciding whether spurious
                                         // convergence to a minimum of fmin has occurred 
     const double kStpMax = 100.0;	// scaled maximum step length allowed in line searches
-    const double kTolX = std::numeric_limits<double>::epsilon(); // convergence criterion on
+    // const double kTolX = std::numeric_limits<double>::epsilon(); // convergence criterion on
                                                                  // delta x
-
+    const double kTolX = 1e-10;
+    
     const arma::uword n = x.n_elem;
     dragonwell::NRfmin<gee::gee_jmcm> fmin(gees); // Set up NRfmin object 
     dragonwell::NRfdjac<gee::gee_jmcm> fdjac(gees); // Set up NRfdjac object
@@ -75,8 +76,11 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
     for (arma::uword iter = 0; iter < kMaxIters; ++iter) {
       //if (!check) break;
 
+      
       fjac = fdjac(x, fvec);
       arma::vec g = fjac.t() * fvec; // Compute delta f for the line search
+      
+      // arma::vec g = fvec; 
       arma::vec xold = x;	     // store x
       double fold = f;		     // store f
 
@@ -95,11 +99,10 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
       arma::vec p = x - xold;
 
       check = linesearch.GetStep(fmin, &f, &x, g, p, stpmax);
-      //linesearch.GetStep(fmin, &f, &x, g, p, stpmax);
       
       f = fmin(x);
       fvec = gees(x);
-      
+     
       if (trace) {
         Rcpp::Rcout << iter << ": " << f << ": " << x.t() << std::endl;
       }
@@ -133,7 +136,7 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
       	  Rcpp::Rcout << "Testing convergence on gradient of f zero... " << std::endl
       		      << "test = " << test << std::endl;
 	
-        break;  // return check;
+        // break;  // return check;
       }
 
       // Test for convergence on delta x
@@ -142,12 +145,17 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
         double temp = std::abs(x(i) - xold(i)) / std::max(std::abs(x(i)), 1.0);
         if (temp > test) test = temp;
       }
+      if (debug_test)
+	Rcpp::Rcout << "kTolX = " << kTolX << std::endl
+		    << "test = " << test << std::endl;
       if (test < kTolX) {
 	if (debug_test)
 	  Rcpp::Rcout << "Testing convergence on delta x... " << std::endl
 		      << "test = " << test << std::endl;
 	break;
-      }  
+      }
+      if (debug_test)
+	Rcpp::Rcout << "kTolX = " << kTolX << std::endl;
     }
   } else {
     if (debug) Rcpp::Rcout << "gees_estimation(): starting non-profile estimation..." << std::endl;
