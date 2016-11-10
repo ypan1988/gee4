@@ -92,6 +92,9 @@ geer <- function(formula, data = NULL, triple = c(3, 3, 3), rho = 0.5,
 
   if (missing(corr.struct))
     stop("corr.struct must be specified")
+  
+  if (corr.struct != 'id' && corr.struct != 'cs' && corr.struct != 'ar1')
+    stop("unknown corr.struct, choose from 'id', 'cs' and 'ar1'")
 
   missCtrl <- missing(control)
   if (!missCtrl && !inherits(control, "geerControl"))

@@ -55,8 +55,8 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
     dragonwell::NRfmin<gee::gee_jmcm> fmin(gees); // Set up NRfmin object 
     dragonwell::NRfdjac<gee::gee_jmcm> fdjac(gees); // Set up NRfdjac object
     double f = fmin(x);				    // 0.5 * fvec.t() * fvec
-    arma::vec fvec = gees(x);			    // gradient
-    arma::mat fjac = arma::zeros<arma::mat>(n, n);  // jacobian
+    arma::vec fvec = gees(x);			    // gradient vector
+    arma::mat fjac = arma::zeros<arma::mat>(n, n);  // jacobian matrix
 
     // Test for initial guess being a root
     double test = 0.0;
