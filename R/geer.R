@@ -84,8 +84,9 @@ NULL
 #' fit.mcd <- geer(weight | id | I(ceiling(day/14 + 1)) ~ 1 | 1,
 #' data=cattleA, triple = c(8, 2, 2), rho = 0.5, corr.struct = 'cs')
 #' @export
-geer <- function(formula, data = NULL, triple = c(3, 3, 3), rho = 0.5,
-                 corr.struct = c('id', 'cs', 'ar1'),
+geer <- function(formula, data = NULL, triple = c(3, 3, 3), 
+                 method = c('gee', 'gee-mcd', 'wgee-mcd'), 
+                 rho = 0.5, corr.struct = c('id', 'cs', 'ar1'),
                  control = geerControl(), start = NULL)
 {
   mc <- mcout <- match.call()
@@ -96,6 +97,11 @@ geer <- function(formula, data = NULL, triple = c(3, 3, 3), rho = 0.5,
   if (corr.struct != 'id' && corr.struct != 'cs' && corr.struct != 'ar1')
     stop("unknown corr.struct, choose from 'id', 'cs' and 'ar1'")
 
+  if (missing(method)) method = 'gee-mcd'
+
+  if (method != 'gee' && method != 'gee-mcd' && method != 'wgee-mcd')
+    stop("unknown method, choose from 'gee', 'gee-mcd' and 'wgee-mcd'")
+  
   missCtrl <- missing(control)
   if (!missCtrl && !inherits(control, "geerControl"))
   {
@@ -110,7 +116,7 @@ geer <- function(formula, data = NULL, triple = c(3, 3, 3), rho = 0.5,
   args <- eval(mc, parent.frame(1L))
 
   opt <- do.call(optimizeGeer,
-    c(args, corr.struct, rho, list(control=control, start=start)))
+    c(args, method, corr.struct, rho, list(control=control, start=start)))
 
   mkGeerMod(opt=opt, args=args, triple=triple, rho = rho, corr.struct=corr.struct, mc=mcout)
 }
@@ -223,7 +229,7 @@ ldFormula <- function(formula, data = NULL, triple = c(3,3,3),rho=0.5,
 
 #' @rdname modular
 #' @export
-optimizeGeer <- function(m, Y, X, Z, W, time, corr.struct, rho, control, start)
+optimizeGeer <- function(m, Y, X, Z, W, time, method, corr.struct, rho, control, start)
 {
   missStart <- is.null(start)
 
@@ -245,7 +251,7 @@ optimizeGeer <- function(m, Y, X, Z, W, time, corr.struct, rho, control, start)
     start <- c(bta0, lmd0, gma0)
   }
 
-  est <- gees_estimation(m, Y, X, Z, W, corr.struct, rho, start, control$trace, control$profile, control$errorMsg)
+  est <- gees_estimation(m, Y, X, Z, W, method, corr.struct, rho, start, control$trace, control$profile, control$errorMsg)
   
   # if (corr.struct == 'id') {
   #   est <- geerfit_id(m, Y, X, Z, W, rho, start, control$trace, control$profile, control$errorMsg)

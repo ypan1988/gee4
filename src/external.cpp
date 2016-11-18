@@ -6,11 +6,11 @@
 
 // [[Rcpp::export]]
 Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, arma::mat W,
-			   std::string corrStruct, double rho, arma::vec start,
+			   std::string method, std::string corrStruct, double rho, arma::vec start,
 			   bool trace = false, bool profile = true, bool errorMsg = false)
 {
   int debug = 0;
-  int debug_test = 0; 
+  int debug_test = 0;
 
   if (debug) Rcpp::Rcout << "gees_estimation(): " << std::endl;
   
@@ -18,6 +18,10 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
   int n_lmd = Z.n_cols;
   int n_gma = W.n_cols;
 
+  bool use_weight;
+  if (method == "gee-mcd") use_weight = false;
+  else if (method == "wgee_mcd") use_weight = true;
+   
   if (debug) Rcpp::Rcout << "gees_estimation(): setting corr_mode..." << std::endl;
   gee_corr_mode corr_mode(0);
   if (corrStruct == "id") corr_mode.setid(1);
