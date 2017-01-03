@@ -13,10 +13,10 @@ namespace gee {
     inline arma::vec get_Y(const arma::uword i) const {
       arma::vec Yi;
       if (i == 0)
-	Yi = Y_.subvec(0, m_(0) - 1);
+        Yi = Y_.subvec(0, m_(0) - 1);
       else {
-	arma::uword vindex = arma::sum(m_.subvec(0, i - 1));
-	Yi = Y_.subvec(vindex, vindex + m_(i) - 1);
+        arma::uword vindex = arma::sum(m_.subvec(0, i - 1));
+        Yi = Y_.subvec(vindex, vindex + m_(i) - 1);
       }
       return Yi;
     }
@@ -25,8 +25,8 @@ namespace gee {
       arma::vec Ri;
       if (i == 0) Ri = R_.subvec(0, m_(0)-1);
       else {
-	arma::uword vindex = arma::sum(m_.subvec(0, i - 1));
-	Ri = R_.subvec(vindex, vindex + m_(i) - 1);
+        arma::uword vindex = arma::sum(m_.subvec(0, i - 1));
+        Ri = R_.subvec(vindex, vindex + m_(i) - 1);
       }
       return Ri;
     } 
@@ -36,14 +36,14 @@ namespace gee {
 
       arma::vec result = arma::zeros<arma::vec>(x.n_elem);
       for (auto i = 0; i != n_sub; ++i) {
-	arma::vec Yi = get_Y(i);
-	arma::vec Ri = get_R(i);
-	for (auto j = 1; j != m(i); ++j) {
-	  arma::vec Z_ij = {1, Yi(j-1)};
-	  double tmp = arma::as_scalar(arma::exp(Z_ij * alpha));
-	  double p_ij =  tmp / (1 + tmp);
-	  result += Ri(j-1) * (Ri(j) - p_ij) * Z_ij;
-	}
+        arma::vec Yi = get_Y(i);
+        arma::vec Ri = get_R(i);
+        for (auto j = 1; j != m(i); ++j) {
+          arma::vec Z_ij = {1, Yi(j-1)};
+          double tmp = arma::as_scalar(arma::exp(Z_ij * alpha));
+          double p_ij =  tmp / (1 + tmp);
+          result += Ri(j-1) * (Ri(j) - p_ij) * Z_ij;
+        }
       }
 
       return result;

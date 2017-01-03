@@ -85,8 +85,9 @@ NULL
 #' data=cattleA, triple = c(8, 2, 2), rho = 0.5, corr.struct = 'cs')
 #' @export
 geer <- function(formula, data = NULL, triple = c(3, 3, 3), 
-                 method = c('gee', 'gee-mcd', 'wgee-mcd'), 
+                 method = c('gee-mcd', 'wgee-mcd'), 
                  rho = 0.5, corr.struct = c('id', 'cs', 'ar1'),
+                 ipw.order = 1,
                  control = geerControl(), start = NULL)
 {
   mc <- mcout <- match.call()
@@ -99,7 +100,7 @@ geer <- function(formula, data = NULL, triple = c(3, 3, 3),
 
   if (missing(method)) method = 'gee-mcd'
 
-  if (method != 'gee' && method != 'gee-mcd' && method != 'wgee-mcd')
+  if (method != 'gee-mcd' && method != 'wgee-mcd')
     stop("unknown method, choose from 'gee', 'gee-mcd' and 'wgee-mcd'")
   
   missCtrl <- missing(control)
@@ -159,8 +160,10 @@ NULL
 
 #' @rdname modular
 #' @export
-ldFormula <- function(formula, data = NULL, triple = c(3,3,3),rho=0.5,
+ldFormula <- function(formula, data = NULL, triple = c(3,3,3),
+                      method = c('gee-mcd', 'wgee-mcd'), rho = 0.5,
                       corr.struct = c('id','cs','ar1'),
+                      ipw.order = 1,
                       control = geerControl(), start = NULL)
 {
   mf <- mc <- match.call()
@@ -251,7 +254,8 @@ optimizeGeer <- function(m, Y, X, Z, W, time, method, corr.struct, rho, control,
     start <- c(bta0, lmd0, gma0)
   }
 
-  est <- gees_estimation(m, Y, X, Z, W, method, corr.struct, rho, start, control$trace, control$profile, control$errorMsg)
+  H <- rep(1, length(Y))
+  est <- gees_estimation(m, Y, X, Z, W, H, method, corr.struct, rho, start, control$trace, control$profile, control$errorMsg)
   
   # if (corr.struct == 'id') {
   #   est <- geerfit_id(m, Y, X, Z, W, rho, start, control$trace, control$profile, control$errorMsg)

@@ -7,7 +7,7 @@ namespace gee {
   void gee_jmcm::UpdateGEES(const arma::vec &x) {
     int debug = 0;
 
-    bool update = true;		// update or not?
+    bool update = true;         // update or not?
 
     switch (free_param_) {
     case 0:
@@ -83,11 +83,11 @@ namespace gee {
       if (debug) Rcpp::Rcout << "update Xbta Zlmd Wgam r" << std::endl;
       
       /*
-	if (debug) Rcpp::Rcout << "UpdateG(x)" << std::endl;
-	UpdateG();
-	if (debug) Rcpp::Rcout << "UpdateTResid(x)" << std::endl;
-	UpdateTResid();
-	if (debug) Rcpp::Rcout << "Update Finished.." << std::endl;
+        if (debug) Rcpp::Rcout << "UpdateG(x)" << std::endl;
+        UpdateG();
+        if (debug) Rcpp::Rcout << "UpdateTResid(x)" << std::endl;
+        UpdateTResid();
+        if (debug) Rcpp::Rcout << "Update Finished.." << std::endl;
       */
       break;
 
@@ -99,8 +99,8 @@ namespace gee {
       if (debug) Rcpp::Rcout << "gees_jmcm::UpdateModel(): Resid_ updated" << std::endl;
 
       /*
-	UpdateG();
-	UpdateTResid();
+        UpdateG();
+        UpdateTResid();
       */
       break;
 
@@ -115,7 +115,7 @@ namespace gee {
       if (debug) Rcpp::Rcout << "gees_jmcm::UpdateModel(): Wgma_ updated" << std::endl;
       
       /*
-	UpdateTResid();
+        UpdateTResid();
       */
       break;
 
@@ -134,12 +134,16 @@ namespace gee {
     for (arma::uword i = 0; i != n_sub; ++i) {
       arma::vec ri = get_Resid(i);
       arma::mat Sigmai_inv = get_Sigma_inv(i);
-
+      if (use_ipw_) {
+	arma::mat H_sqrt = get_weights_sqrt(i);
+	Sigmai_inv = H_sqrt * Sigmai_inv * H_sqrt;
+      }
+      
       arma::mat deriv1;
       arma::vec yi_tilde;
       if (link_mode_ == identity_link) {
-	deriv1 = get_X(i).t();
-	yi_tilde = get_Y(i);
+        deriv1 = get_X(i).t();
+        yi_tilde = get_Y(i);
       }
       bta_lhs += deriv1 * Sigmai_inv * deriv1.t();
       bta_rhs += deriv1 * Sigmai_inv * yi_tilde;
@@ -175,9 +179,14 @@ namespace gee {
       else if (corr_mode_ == AR1_corr) Ri_inv = dragonwell::corr_ar1(rho_, mi).i();
     
       arma::mat cov_inv = Ai_sqrt_inv * Ri_inv * Ai_sqrt_inv;
+      if (use_ipw_) {
+	arma::mat H_sqrt = get_weights_sqrt(i);
+	cov_inv = H_sqrt * cov_inv * H_sqrt;
+      }
+
       arma::mat deriv2 = get_Z(i).t();
       for (arma::uword t = 1; t <= mi; ++t) {
-	deriv2.col(t - 1) *= arma::as_scalar(di(t - 1));
+        deriv2.col(t - 1) *= arma::as_scalar(di(t - 1));
       }
     
       arma::vec epsi2 = arma::pow(Ti * ri, 2);
@@ -205,15 +214,19 @@ namespace gee {
       arma::vec ri = get_Resid(i);
       arma::mat Di = get_D(i);
       arma::mat Di_inv = arma::diagmat(arma::pow(Di.diag(), -1));
-      
+      if (use_ipw_) {
+	arma::mat H_sqrt = get_weights_sqrt(i);
+	Di_inv = H_sqrt * Di_inv * H_sqrt;
+      }
+
       arma::uword rindex = 0;
       
       arma::mat deriv3 = arma::zeros<arma::mat>(lgma, mi);
       for (arma::uword j = 2; j <= mi; ++j) {
-	for (arma::uword k = 1; k <= (j - 1); ++k) {
-	  deriv3.col(j - 1) += ri(k - 1) * Wi.row(rindex).t();
-	  ++rindex;
-	}
+        for (arma::uword k = 1; k <= (j - 1); ++k) {
+          deriv3.col(j - 1) += ri(k - 1) * Wi.row(rindex).t();
+          ++rindex;
+        }
       }
       
       gma_lhs += deriv3 * Di_inv * deriv3.t();
@@ -257,7 +270,7 @@ namespace gee {
  
       arma::mat deriv1;
       if (link_mode_ == identity_link) {
-	deriv1 = get_X(i).t();
+        deriv1 = get_X(i).t();
       }
       gee_bta += deriv1 * Sigmai_inv * ri;
 
@@ -273,7 +286,7 @@ namespace gee {
       arma::mat cov_inv = Ai_sqrt_inv * Ri_inv * Ai_sqrt_inv;
       arma::mat deriv2 = get_Z(i).t();
       for (arma::uword t = 1; t <= mi; ++t) {
-	deriv2.col(t - 1) *= arma::as_scalar(di(t - 1));
+        deriv2.col(t - 1) *= arma::as_scalar(di(t - 1));
       }
       
       arma::vec epsi2 = arma::pow(Ti * ri, 2);
@@ -287,10 +300,10 @@ namespace gee {
       arma::uword rindex = 0;
       arma::mat deriv3 = arma::zeros<arma::mat>(lgma, mi);
       for (arma::uword j = 2; j <= mi; ++j) {
-	for (arma::uword k = 1; k <= (j - 1); ++k) {
-	  deriv3.col(j - 1) += ri(k - 1) * Wi.row(rindex).t();
-	  ++rindex;
-	}
+        for (arma::uword k = 1; k <= (j - 1); ++k) {
+          deriv3.col(j - 1) += ri(k - 1) * Wi.row(rindex).t();
+          ++rindex;
+        }
       }
 
       gee_gma += deriv3 * Di_inv * (Ti * ri);
@@ -303,11 +316,11 @@ namespace gee {
   }
 
   bool gee_jmcm::learn(const arma::uvec& m, const arma::mat& Y,
-		       const arma::mat& X, const arma::mat& Z, const arma::mat& W,
-		       const gee_link_mode& link_mode,
-		       const gee_corr_mode& corr_mode, const double rho,
-		       const arma::vec& start, const arma::uword fs_iter,
-		       const bool print_mode) {
+                       const arma::mat& X, const arma::mat& Z, const arma::mat& W,
+                       const gee_link_mode& link_mode,
+                       const gee_corr_mode& corr_mode, const double rho,
+                       const arma::vec& start, const arma::uword fs_iter,
+                       const bool print_mode) {
     int debug = 1;
 
     m_ = m;
@@ -331,8 +344,8 @@ namespace gee {
       bool status = false;
       status = fs_iterate(link_mode, corr_mode, rho, start, fs_iter, print_mode);
       if (status == false) {
-	Rcpp::Rcerr << "gee_jmcm::learn(): quasi-Fisher scoring algorithm failed"
-		    << std::endl;
+        Rcpp::Rcerr << "gee_jmcm::learn(): quasi-Fisher scoring algorithm failed"
+                    << std::endl;
       }
     }
 
@@ -340,9 +353,9 @@ namespace gee {
   }
 
   bool gee_jmcm::fs_iterate(const gee_link_mode& link_mode,
-			    const gee_corr_mode& corr_mode, const double rho,
-			    const arma::vec& start, arma::uword max_iter,
-			    const bool verbose) {
+                            const gee_corr_mode& corr_mode, const double rho,
+                            const arma::vec& start, arma::uword max_iter,
+                            const bool verbose) {
     int debug = 0;
     arma::vec x = start;
     if (debug) Rcpp::Rcout << "entering set_params()" << std::endl;
@@ -366,18 +379,18 @@ namespace gee {
 
       x = dragonwell::join_vecs({bta_, lmd_, gma_});
       if (verbose) {
-	Rcpp::Rcout << iter << ": " << std::endl;
-	x.t().print();
+        Rcpp::Rcout << iter << ": " << std::endl;
+        x.t().print();
       }
       p = x - x2;
       // Test for convergence on Delta x
       double test = 0.0;
       for (int i = 0; i != n_pars; ++i) {
-	double temp = std::abs(p(i)) / std::max(std::abs(x(i)), 1.0);
-	if (temp > test) test = temp;
+        double temp = std::abs(p(i)) / std::max(std::abs(x(i)), 1.0);
+        if (temp > test) test = temp;
       }
       if (test < kTolX) {
-	break;
+        break;
       }
     }
 
@@ -385,8 +398,8 @@ namespace gee {
   }
 
   void gee_jmcm::fs_update_params(const gee_link_mode& link_mode,
-				  const gee_corr_mode& corr_mode,
-				  const double rho) {
+                                  const gee_corr_mode& corr_mode,
+                                  const double rho) {
     int debug = 0;
     arma::uword n_sub = m_.n_elem;
     arma::uword lbta = X_.n_cols;
@@ -413,8 +426,8 @@ namespace gee {
       arma::mat deriv1;
       arma::vec yi_tilde;
       if (link_mode == identity_link) {
-	deriv1 = get_X(i).t();
-	yi_tilde = get_Y(i);
+        deriv1 = get_X(i).t();
+        yi_tilde = get_Y(i);
       }
       bta_lhs += deriv1 * Sigmai_inv * deriv1.t();
       bta_rhs += deriv1 * Sigmai_inv * yi_tilde;
@@ -441,7 +454,7 @@ namespace gee {
       arma::mat cov_inv = Ai_sqrt_inv * Ri_inv * Ai_sqrt_inv;
       arma::mat deriv2 = get_Z(i).t();
       for (arma::uword t = 1; t <= mi; ++t) {
-	deriv2.col(t - 1) *= arma::as_scalar(di(t - 1));
+        deriv2.col(t - 1) *= arma::as_scalar(di(t - 1));
       }
       if (debug) Rcpp::Rcout << "fs_update for update gma part1" << std::endl;
       arma::vec epsi2 = arma::pow(Ti * ri, 2);
@@ -455,10 +468,10 @@ namespace gee {
       arma::uword rindex = 0;
       arma::mat deriv3 = arma::zeros<arma::mat>(lgma, mi);
       for (arma::uword j = 2; j <= mi; ++j) {
-	for (arma::uword k = 1; k <= (j - 1); ++k) {
-	  deriv3.col(j - 1) += ri(k - 1) * Wi.row(rindex).t();
-	  ++rindex;
-	}
+        for (arma::uword k = 1; k <= (j - 1); ++k) {
+          deriv3.col(j - 1) += ri(k - 1) * Wi.row(rindex).t();
+          ++rindex;
+        }
       }
 
       gma_lhs += deriv3 * Di_inv * deriv3.t();

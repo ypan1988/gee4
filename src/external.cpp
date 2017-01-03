@@ -6,8 +6,9 @@
 
 // [[Rcpp::export]]
 Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, arma::mat W,
-			   std::string method, std::string corrStruct, double rho, arma::vec start,
-			   bool trace = false, bool profile = true, bool errorMsg = false)
+			   arma::vec H,
+                           std::string method, std::string corrStruct, double rho, arma::vec start,
+                           bool trace = false, bool profile = true, bool errorMsg = false)
 {
   int debug = 0;
   int debug_test = 0;
@@ -17,10 +18,6 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
   int n_bta = X.n_cols;
   int n_lmd = Z.n_cols;
   int n_gma = W.n_cols;
-
-  bool use_weight;
-  if (method == "gee-mcd") use_weight = false;
-  else if (method == "wgee_mcd") use_weight = true;
    
   if (debug) Rcpp::Rcout << "gees_estimation(): setting corr_mode..." << std::endl;
   gee_corr_mode corr_mode(0);
@@ -30,6 +27,8 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
 
   if (debug) Rcpp::Rcout << "gees_estimation(): creating gees object..." << std::endl;
   gee::gee_jmcm gees(m, Y, X, Z, W, rho, identity_link, corr_mode);
+  if (method == "wgee_mcd") gees.set_weights(H);
+  
   dragonwell::Newton<gee::gee_jmcm> newt(gees);
   dragonwell::LineSearch<dragonwell::NRfmin<gee::gee_jmcm>> linesearch;
   linesearch.set_message(errorMsg);
@@ -45,22 +44,22 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
     }
     gees.set_params(x);
     
-    bool check = true;			// check is true if the routine has converged to
+    bool check = true;                  // check is true if the routine has converged to
                                         // a local minimum of the function fmin  
     const arma::uword kMaxIters = 200;  // maximum number of iterations
-    const double kTolF = 1.0e-8;	// convergence criterion on the function value
-    const double kTolMin = 1.0e-12;	// criterion for deciding whether spurious
+    const double kTolF = 1.0e-8;        // convergence criterion on the function value
+    const double kTolMin = 1.0e-12;     // criterion for deciding whether spurious
                                         // convergence to a minimum of fmin has occurred 
-    const double kStpMax = 100.0;	// scaled maximum step length allowed in line searches
+    const double kStpMax = 100.0;       // scaled maximum step length allowed in line searches
     // const double kTolX = std::numeric_limits<double>::epsilon(); // convergence criterion on
-                                                                 // delta x
+    // delta x
     const double kTolX = 1e-10;
     
     const arma::uword n = x.n_elem;
     dragonwell::NRfmin<gee::gee_jmcm> fmin(gees); // Set up NRfmin object 
     dragonwell::NRfdjac<gee::gee_jmcm> fdjac(gees); // Set up NRfdjac object
-    double f = fmin(x);				    // 0.5 * fvec.t() * fvec
-    arma::vec fvec = gees(x);			    // gradient vector
+    double f = fmin(x);                             // 0.5 * fvec.t() * fvec
+    arma::vec fvec = gees(x);                       // gradient vector
     arma::mat fjac = arma::zeros<arma::mat>(n, n);  // jacobian matrix
 
     // Test for initial guess being a root
@@ -71,8 +70,8 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
     if (test < 0.01 * kTolF) {
       check = false;
       if (debug_test)
-	Rcpp::Rcout << "Testing initial guess... " << std::endl
-		    << "test = " << test << std::endl;
+        Rcpp::Rcout << "Testing initial guess... " << std::endl
+                    << "test = " << test << std::endl;
     }
     
     double sum = arma::as_scalar(x.t() * x);
@@ -85,8 +84,8 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
       arma::vec g = fjac.t() * fvec; // Compute delta f for the line search
       
       // arma::vec g = fvec; 
-      arma::vec xold = x;	     // store x
-      double fold = f;		     // store f
+      arma::vec xold = x;            // store x
+      double fold = f;               // store f
 
       if (debug) Rcpp::Rcout << "Update beta..." << std::endl;
       gees.UpdateBeta();
@@ -119,11 +118,11 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
 
       if (test < kTolF) {
         check = false;
-	if (debug_test)
-	  Rcpp::Rcout << "Testing convergence on function values... " << std::endl
-		      << "test = " << test << std::endl;
+        if (debug_test)
+          Rcpp::Rcout << "Testing convergence on function values... " << std::endl
+                      << "test = " << test << std::endl;
       
-	break;  
+        break;  
       }
 
       // Check for gradient of f zero, i.e., spurious convergence
@@ -136,10 +135,10 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
         }
         check = (test < kTolMin);
 
-      	if (debug_test)
-      	  Rcpp::Rcout << "Testing convergence on gradient of f zero... " << std::endl
-      		      << "test = " << test << std::endl;
-	
+        if (debug_test)
+          Rcpp::Rcout << "Testing convergence on gradient of f zero... " << std::endl
+                      << "test = " << test << std::endl;
+        
         // break;  // return check;
       }
 
@@ -150,16 +149,16 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
         if (temp > test) test = temp;
       }
       if (debug_test)
-	Rcpp::Rcout << "kTolX = " << kTolX << std::endl
-		    << "test = " << test << std::endl;
+        Rcpp::Rcout << "kTolX = " << kTolX << std::endl
+                    << "test = " << test << std::endl;
       if (test < kTolX) {
-	if (debug_test)
-	  Rcpp::Rcout << "Testing convergence on delta x... " << std::endl
-		      << "test = " << test << std::endl;
-	break;
+        if (debug_test)
+          Rcpp::Rcout << "Testing convergence on delta x... " << std::endl
+                      << "test = " << test << std::endl;
+        break;
       }
       if (debug_test)
-	Rcpp::Rcout << "kTolX = " << kTolX << std::endl;
+        Rcpp::Rcout << "kTolX = " << kTolX << std::endl;
     }
   } else {
     if (debug) Rcpp::Rcout << "gees_estimation(): starting non-profile estimation..." << std::endl;
@@ -304,10 +303,10 @@ Rcpp::List geerfit_id(arma::uvec m,
 
 
 
-    //double f_min = 0.0;
-    newt.Optimize(x, 1.0e-6, trace);
-    //f_min = newt.f_min();
-    n_iters = newt.n_iters();
+  //double f_min = 0.0;
+  newt.Optimize(x, 1.0e-6, trace);
+  //f_min = newt.f_min();
+  n_iters = newt.n_iters();
   //else {
   //   gees.learn(m, Y, X, Z, W, identity_link, Identity_corr, rho, x, 1000, trace);
   // }
@@ -333,15 +332,15 @@ Rcpp::List geerfit_id(arma::uvec m,
 
 // [[Rcpp::export]]
 Rcpp::List geerfit_cs(arma::uvec m,
-                          arma::vec Y,
-                          arma::mat X,
-                          arma::mat Z,
-                          arma::mat W,
-                          double rho,
-                          arma::vec start,
-                          bool trace = false,
-                          bool profile = true,
-                          bool errorMsg = false) {
+                      arma::vec Y,
+                      arma::mat X,
+                      arma::mat Z,
+                      arma::mat W,
+                      double rho,
+                      arma::vec start,
+                      bool trace = false,
+                      bool profile = true,
+                      bool errorMsg = false) {
   int n_bta = X.n_cols;
   int n_lmd = Z.n_cols;
   int n_gma = W.n_cols;
@@ -378,15 +377,15 @@ Rcpp::List geerfit_cs(arma::uvec m,
 
 // [[Rcpp::export]]
 Rcpp::List geerfit_ar1(arma::uvec m,
-                   arma::vec Y,
-                   arma::mat X,
-                   arma::mat Z,
-                   arma::mat W,
-                   double rho,
-                   arma::vec start,
-                   bool trace = false,
-                   bool profile = true,
-                   bool errorMsg = false) {
+                       arma::vec Y,
+                       arma::mat X,
+                       arma::mat Z,
+                       arma::mat W,
+                       double rho,
+                       arma::vec start,
+                       bool trace = false,
+                       bool profile = true,
+                       bool errorMsg = false) {
   int n_bta = X.n_cols;
   int n_lmd = Z.n_cols;
   int n_gma = W.n_cols;

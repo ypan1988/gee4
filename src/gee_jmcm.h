@@ -58,13 +58,13 @@ namespace gee {
   class gee_jmcm {
   public:
   gee_jmcm(const arma::uvec &m,
-	   const arma::vec &Y,
-	   const arma::mat &X,
-	   const arma::mat &Z,
-	   const arma::mat &W,
-	   const double rho,
-	   const gee_link_mode &link_mode,
-	   const gee_corr_mode &corr_mode):
+           const arma::vec &Y,
+           const arma::mat &X,
+           const arma::mat &Z,
+           const arma::mat &W,
+           const double rho,
+           const gee_link_mode &link_mode,
+           const gee_corr_mode &corr_mode):
     m_(m),Y_(Y),X_(X),Z_(Z),W_(W), rho_(rho),
       link_mode_(link_mode), corr_mode_(corr_mode){
 
@@ -74,6 +74,9 @@ namespace gee {
       int n_bta = X_.n_cols;
       int n_lmd = Z_.n_cols;
       int n_gma = W_.n_cols;
+
+      H_ = arma::ones<arma::vec>(N);
+      use_ipw_ = false;
       
       tht_ = arma::zeros<arma::vec>(n_bta + n_lmd + n_gma);
       bta_ = arma::zeros<arma::vec>(n_bta);
@@ -101,6 +104,7 @@ namespace gee {
     inline arma::vec get_lambda() const;
     inline void set_gamma(const arma::vec &gamma);
     inline arma::vec get_gamma() const;
+    inline void set_weights(const arma::vec &H);
     
     arma::vec operator()(const arma::vec &x);
 
@@ -113,10 +117,10 @@ namespace gee {
     void UpdateGamma();
 
     bool learn(const arma::uvec &m, const arma::mat &Y, const arma::mat &X,
-	       const arma::mat &Z, const arma::mat &W,
-	       const gee_link_mode &link_mode, const gee_corr_mode &corr_mode,
-	       const double rho, const arma::vec &start,
-	       const arma::uword fs_iter, const bool print_mode = false);
+               const arma::mat &Z, const arma::mat &W,
+               const gee_link_mode &link_mode, const gee_corr_mode &corr_mode,
+               const double rho, const arma::vec &start,
+               const arma::uword fs_iter, const bool print_mode = false);
 
     inline double get_quasi_likelihood(const arma::vec &x) {
       set_params(x);
@@ -124,10 +128,10 @@ namespace gee {
 
       double result = 0.0;
       for(arma::uword i = 0; i < n_sub; ++i) {
-	arma::mat Sigmai_inv = get_Sigma_inv(i);
-	arma::vec ri = get_Resid(i);
-	result += arma::as_scalar(ri.t() * Sigmai_inv * ri);
-	//result += arma::as_scalar(ri.t() * ri);
+        arma::mat Sigmai_inv = get_Sigma_inv(i);
+        arma::vec ri = get_Resid(i);
+        result += arma::as_scalar(ri.t() * Sigmai_inv * ri);
+        //result += arma::as_scalar(ri.t() * ri);
       }
       result *= -0.5;
 
@@ -140,6 +144,9 @@ namespace gee {
     arma::mat X_;
     arma::mat Z_;
     arma::mat W_;
+
+    bool use_ipw_;
+    arma::vec H_;
 
     arma::vec tht_;
     arma::vec bta_;
@@ -167,13 +174,14 @@ namespace gee {
     inline arma::mat get_D(const arma::uword i) const;
     inline arma::mat get_T(const arma::uword i) const;
     inline arma::mat get_Sigma_inv(const arma::uword i) const;
-
+    inline arma::mat get_weights_sqrt(const arma::uword i) const;
+    
     bool fs_iterate(const gee_link_mode &link_mode,
-		    const gee_corr_mode &corr_mode, const double rho,
-		    const arma::vec &start, const arma::uword max_iter,
-		    const bool verbose);
+                    const gee_corr_mode &corr_mode, const double rho,
+                    const arma::vec &start, const arma::uword max_iter,
+                    const bool verbose);
     void fs_update_params(const gee_link_mode &link_mode,
-			  const gee_corr_mode &corr_mode, const double rho);
+                          const gee_corr_mode &corr_mode, const double rho);
   };
 
   void gee_jmcm::set_free_param(const int n) { free_param_ = n; }
@@ -192,7 +200,7 @@ namespace gee {
     /* arma::uword lgma = W_.n_cols; */
     /* if (x.n_elem != (lbta + llmd + lgma)) */
     /*   Rcpp::Rcerr << "gee_jmcm::set_params(): give vector has wrong dimension" */
-    /* 		  << std::endl; */
+    /*            << std::endl; */
 
     /* bta_ = x.rows(0, lbta - 1); */
     /* lmd_ = x.rows(lbta, lbta + llmd - 1); */
@@ -235,6 +243,11 @@ namespace gee {
 
   arma::vec gee_jmcm::get_gamma() const { return gma_; }
 
+  void gee_jmcm::set_weights(const arma::vec &H) {
+    use_ipw_ = true;
+    H_ = true;
+  }
+  
   arma::uword gee_jmcm::get_m(const arma::uword i) const { return m_(i); }
 
   arma::vec gee_jmcm::get_Y(const arma::uword i) const {
@@ -274,16 +287,16 @@ namespace gee {
     arma::mat Wi;
     if (m_(i) != 1) {
       if (i == 0) {
-	arma::uword first_index = 0;
-	arma::uword last_index = m_(0) * (m_(0) - 1) / 2 - 1;
-	Wi = W_.rows(first_index, last_index);
+        arma::uword first_index = 0;
+        arma::uword last_index = m_(0) * (m_(0) - 1) / 2 - 1;
+        Wi = W_.rows(first_index, last_index);
       } else {
-	arma::uword first_index = 0;
-	for (arma::uword idx = 0; idx != i; ++idx) {
-	  first_index += m_(idx) * (m_(idx) - 1) / 2;
-	}
-	arma::uword last_index = first_index + m_(i) * (m_(i) - 1) / 2 - 1;
-	Wi = W_.rows(first_index, last_index);
+        arma::uword first_index = 0;
+        for (arma::uword idx = 0; idx != i; ++idx) {
+          first_index += m_(idx) * (m_(idx) - 1) / 2;
+        }
+        arma::uword last_index = first_index + m_(i) * (m_(i) - 1) / 2 - 1;
+        Wi = W_.rows(first_index, last_index);
       }
     }
     return Wi;
@@ -315,16 +328,16 @@ namespace gee {
     arma::mat Ti = arma::eye(m_(i), m_(i));
     if (m_(i) != 1) {
       if (i == 0) {
-	arma::uword first_index = 0;
-	arma::uword last_index = m_(0) * (m_(0) - 1) / 2 - 1;
-	Ti = dragonwell::ltrimat(m_(0), -Wgma_.subvec(first_index, last_index));
+        arma::uword first_index = 0;
+        arma::uword last_index = m_(0) * (m_(0) - 1) / 2 - 1;
+        Ti = dragonwell::ltrimat(m_(0), -Wgma_.subvec(first_index, last_index));
       } else {
-	arma::uword first_index = 0;
-	for (arma::uword idx = 0; idx != i; ++idx) {
-	  first_index += m_(idx) * (m_(idx) - 1) / 2;
-	}
-	arma::uword last_index = first_index + m_(i) * (m_(i) - 1) / 2 - 1;
-	Ti = dragonwell::ltrimat(m_(i), -Wgma_.subvec(first_index, last_index));
+        arma::uword first_index = 0;
+        for (arma::uword idx = 0; idx != i; ++idx) {
+          first_index += m_(idx) * (m_(idx) - 1) / 2;
+        }
+        arma::uword last_index = first_index + m_(i) * (m_(i) - 1) / 2 - 1;
+        Ti = dragonwell::ltrimat(m_(i), -Wgma_.subvec(first_index, last_index));
       }
     }
     return Ti;
@@ -337,6 +350,17 @@ namespace gee {
     return Ti.t() * Di_inv * Ti;
   }
 
+  arma::mat gee_jmcm::get_weights_sqrt(const arma::uword i) const {
+    arma::mat result = arma::eye(m_(i), m_(i));
+    if (i == 0)
+      result = arma::diagmat(arma::sqrt(H_.subvec(0, m_(0) - 1)));
+    else {
+      arma::uword rindex = arma::sum(m_.subvec(0, i - 1));
+      result = arma::diagmat(arma::sqrt(H_.subvec(rindex, rindex + m_(i) - 1)));
+    }
+    return result;
+  }
+  
 }  // namespace gee4
 
 #endif  // GEE_JMCM_H_
