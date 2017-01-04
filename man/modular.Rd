@@ -7,12 +7,14 @@
 \alias{optimizeGeer}
 \title{Modular Functions for Joint Mean Covariance Model Fits}
 \usage{
-ldFormula(formula, data = NULL, triple = c(3, 3, 3), rho = 0.5,
-  cov.method = c("cs", "ar1"), control = geerControl(), start = NULL)
+ldFormula(formula, data = NULL, triple = c(3, 3, 3), method = c("gee-mcd",
+  "wgee-mcd"), corr.struct = c("id", "cs", "ar1"), rho = 0.5,
+  ipw.order = 1, control = geerControl(), start = NULL)
 
-optimizeGeer(m, Y, X, Z, W, time, cov.method, rho, control, start)
+optimizeGeer(m, Y, X, Z, W, time, method, corr.struct, rho, ipw.order, control,
+  start)
 
-mkGeerMod(opt, args, triple, cov.method, mc)
+mkGeerMod(opt, args, triple, rho, corr.struct, mc)
 }
 \arguments{
 \item{formula}{a two-sided linear formula object describing the covariates
@@ -28,11 +30,11 @@ three polynomial functions for the mean structure, the log innovation
 or 'acd' is specified for cov.method. It refers to the degree for the mean
 structure, variances and angles when 'hpc' is specified for cov.method.}
 
-\item{rho}{a parameter used in the sandwich 'working' covariance structure}
-
-\item{cov.method}{covariance structure modelling method,
+\item{corr.struct}{covariance structure modelling method,
 choose 'mcd' (Pourahmadi 1999), 'acd' (Chen and Dunson 2013) or 'hpc'
 (Zhang et al. 2015).}
+
+\item{rho}{a parameter used in the sandwich 'working' covariance structure}
 
 \item{control}{a list (of correct class, resulting from geerControl())
 containing control parameters, see the *geerControl documentation for

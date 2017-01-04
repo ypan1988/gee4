@@ -86,7 +86,7 @@ NULL
 #' @export
 geer <- function(formula, data = NULL, triple = c(3, 3, 3), 
                  method = c('gee-mcd', 'wgee-mcd'), 
-                 rho = 0.5, corr.struct = c('id', 'cs', 'ar1'),
+                 corr.struct = c('id', 'cs', 'ar1'), rho = 0.5, 
                  ipw.order = 1,
                  control = geerControl(), start = NULL)
 {
@@ -117,7 +117,7 @@ geer <- function(formula, data = NULL, triple = c(3, 3, 3),
   args <- eval(mc, parent.frame(1L))
 
   opt <- do.call(optimizeGeer,
-    c(args, method, corr.struct, rho, list(control=control, start=start)))
+    c(args, method, corr.struct, rho, ipw.order, list(control=control, start=start)))
 
   mkGeerMod(opt=opt, args=args, triple=triple, rho = rho, corr.struct=corr.struct, mc=mcout)
 }
@@ -161,8 +161,8 @@ NULL
 #' @rdname modular
 #' @export
 ldFormula <- function(formula, data = NULL, triple = c(3,3,3),
-                      method = c('gee-mcd', 'wgee-mcd'), rho = 0.5,
-                      corr.struct = c('id','cs','ar1'),
+                      method = c('gee-mcd', 'wgee-mcd'),
+                      corr.struct = c('id','cs','ar1'), rho = 0.5,
                       ipw.order = 1,
                       control = geerControl(), start = NULL)
 {
@@ -232,7 +232,7 @@ ldFormula <- function(formula, data = NULL, triple = c(3,3,3),
 
 #' @rdname modular
 #' @export
-optimizeGeer <- function(m, Y, X, Z, W, time, method, corr.struct, rho, control, start)
+optimizeGeer <- function(m, Y, X, Z, W, time, method, corr.struct, rho, ipw.order, control, start)
 {
   missStart <- is.null(start)
 

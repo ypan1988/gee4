@@ -4,8 +4,9 @@
 \alias{geer}
 \title{Fit Joint Mean-Covariance Models}
 \usage{
-geer(formula, data = NULL, triple = c(3, 3, 3), rho = 0.5,
-  cov.method = c("cs", "ar1"), control = geerControl(), start = NULL)
+geer(formula, data = NULL, triple = c(3, 3, 3), method = c("gee-mcd",
+  "wgee-mcd"), corr.struct = c("id", "cs", "ar1"), rho = 0.5,
+  ipw.order = 1, control = geerControl(), start = NULL)
 }
 \arguments{
 \item{formula}{a two-sided linear formula object describing the covariates
@@ -21,11 +22,11 @@ three polynomial functions for the mean structure, the log innovation
 or 'acd' is specified for cov.method. It refers to the degree for the mean
 structure, variances and angles when 'hpc' is specified for cov.method.}
 
-\item{rho}{a parameter used in the sandwich 'working' covariance structure.}
-
-\item{cov.method}{covariance structure modelling method,
+\item{corr.struct}{covariance structure modelling method,
 choose 'mcd' (Pourahmadi 1999), 'acd' (Chen and Dunson 2013, not available yet)
 or 'hpc' (Zhang et al. 2015, not available yet).}
+
+\item{rho}{a parameter used in the sandwich 'working' covariance structure.}
 
 \item{control}{a list (of correct class, resulting from geerControl())
 containing control parameters, see the *geerControl documentation for
@@ -41,6 +42,6 @@ Newton-Raphson method.
 \examples{
 cattleA <- cattle[cattle$group=='A', ]
 fit.mcd <- geer(weight | id | I(ceiling(day/14 + 1)) ~ 1 | 1,
-data=cattleA, triple = c(8, 2, 2), rho = 0.5, cov.method = 'cs')
+data=cattleA, triple = c(8, 2, 2), rho = 0.5, corr.struct = 'cs')
 }
 
