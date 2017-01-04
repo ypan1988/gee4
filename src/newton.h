@@ -56,7 +56,8 @@ class Newton : public LineSearch<NRfmin<T>> {
     const double kTolF = 1.0e-8;
     const double kTolMin = 1.0e-12;
     const double kStpMax = 100.0;
-    const double kTolX = std::numeric_limits<double>::epsilon();
+    //const double kTolX = std::numeric_limits<double>::epsilon();
+    const double kTolX = 1.0e-10;
 
     const arma::uword n = x.n_elem;
     NRfmin<T> fmin(func_);

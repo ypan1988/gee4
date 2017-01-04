@@ -8,7 +8,20 @@
 
 //'@export
 // [[Rcpp::export]]
-Rcpp::List ipw_estimation(arma::uvec m, arma::vec Y) {
+Rcpp::List ipw_estimation(arma::uvec m, arma::vec Y, arma::uword order, bool trace = false) {
+  int debug = 0;
+  if (debug) Rcpp::Rcout << "ipw_estimation()" << std::endl;
+
+  gee::ipw weights(m, Y, order);
+  dragonwell::Newton<gee::ipw> newt(weights);
+
+
+  trace = true;
+  arma::vec x = arma::zeros<arma::vec>(order + 1);
+  newt.Optimize(x, 1.0e-6, trace);
+  arma::vec result = weights.CalWeights(x);
+  //result.print("Weight = ");
+  
   return Rcpp::List::create(Rcpp::Named("m") = m,
                             Rcpp::Named("iter") = 5);
 

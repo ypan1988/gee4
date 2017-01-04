@@ -255,6 +255,7 @@ optimizeGeer <- function(m, Y, X, Z, W, time, method, corr.struct, rho, ipw.orde
   }
 
   H <- rep(1, length(Y))
+  if (method == 'wgee-mcd') ipw_estimation(m, Y, ipw.order)
   est <- gees_estimation(m, Y, X, Z, W, H, method, corr.struct, rho, start, control$trace, control$profile, control$errorMsg)
   
   # if (corr.struct == 'id') {
