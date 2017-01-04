@@ -7,7 +7,8 @@ namespace gee {
 
   class ipw {
   public:
-  ipw(const arma::uvec &m, const arma::vec &Y) : m_(m), Y_(Y) { }
+  ipw(const arma::uvec &m, const arma::vec &Y, arma::uword order)
+    : m_(m), Y_(Y), order_(order) { }
 
     inline arma::vec get_Y(const arma::uword i) const {
       arma::vec Yi;
@@ -19,17 +20,7 @@ namespace gee {
       }
       return Yi;
     }
-    
-    /* inline arma::vec get_R(const arma::uword i) const { */
-    /*   arma::vec Ri; */
-    /*   if (i == 0) Ri = R_.subvec(0, m_(0)-1); */
-    /*   else { */
-    /*     arma::uword vindex = arma::sum(m_.subvec(0, i - 1)); */
-    /*     Ri = R_.subvec(vindex, vindex + m_(i) - 1); */
-    /*   } */
-    /*   return Ri; */
-    /* }  */
-    
+        
     arma::vec operator()(const arma::vec &alpha) {
       arma::uword nsub = m_.n_elem;
 
@@ -50,7 +41,7 @@ namespace gee {
   private:
     arma::uvec m_;
     arma::vec Y_;
-    arma::vec alpha_;
+    arma::uword order_;
   };
 }
 
