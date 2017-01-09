@@ -117,15 +117,19 @@ namespace gee {
     void UpdateLambda();
     void UpdateGamma();
 
-    inline arma::uword get_m(const arma::uword i) const;
-    inline arma::vec get_Y(const arma::uword i) const;
-    inline arma::mat get_X(const arma::uword i) const;
-    inline arma::mat get_Z(const arma::uword i) const;
-    inline arma::mat get_W(const arma::uword i) const;
+    arma::uword get_m(const arma::uword i) const;
+    arma::vec get_Y(const arma::uword i) const;
+    arma::mat get_X(const arma::uword i) const;
+    arma::mat get_Z(const arma::uword i) const;
+    arma::mat get_W(const arma::uword i) const;
 
-    inline arma::vec get_Resid(const arma::uword i) const;
-    inline arma::mat get_D(const arma::uword i) const;
+    arma::vec get_Resid(const arma::uword i) const;
+    arma::mat get_D(const arma::uword i) const;
     inline arma::mat get_T(const arma::uword i) const;
+    
+    arma::vec get_mu(const arma::uword i) const;
+    arma::mat get_Sigma(const arma::uword i) const;
+    
     inline arma::mat get_Sigma_inv(const arma::uword i) const;
     inline arma::mat get_weights_sqrt(const arma::uword i) const;
 
@@ -325,6 +329,31 @@ namespace gee {
     return Ti;
   }
 
+  inline arma::vec gee_jmcm::get_mu(const arma::uword i) const {
+    arma::vec mui;
+    if (i == 0)
+      mui = Xbta_.subvec(0, m_(0) - 1);
+    else {
+      int index = arma::sum(m_.subvec(0, i - 1));
+      mui = Xbta_.subvec(index, index + m_(i) - 1);
+    }
+    return mui;
+  }
+  
+  inline arma::mat gee_jmcm::get_Sigma(const arma::uword i) const {
+    int debug = 0;
+    
+    arma::mat Ti = get_T(i);
+    arma::mat Ti_inv = arma::pinv(Ti);
+    arma::mat Di = get_D(i);
+    
+    if (debug) {
+      Ti.print("Ti = ");
+      Di.print("Di = ");
+    }
+    return Ti_inv * Di * Ti_inv.t();
+  }
+  
   inline arma::mat gee_jmcm::get_Sigma_inv(const arma::uword i) const {
     arma::mat Ti = get_T(i);
     arma::mat Di = get_D(i);

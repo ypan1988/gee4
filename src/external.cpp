@@ -385,3 +385,77 @@ RcppExport SEXP gee_jmcm__get_m(SEXP xp, SEXP i_) {
 
   return Rcpp::wrap(ptr->get_m(i));
 }
+
+RcppExport SEXP gee_jmcm__get_Y(SEXP xp, SEXP i_) {
+  Rcpp::XPtr<gee::gee_jmcm> ptr(xp);
+  int i = Rcpp::as<int>(i_) - 1;
+  
+  return Rcpp::wrap(ptr->get_Y(i));
+}
+
+RcppExport SEXP gee_jmcm__get_X(SEXP xp, SEXP i_) {
+  Rcpp::XPtr<gee::gee_jmcm> ptr(xp);
+  int i = Rcpp::as<int>(i_) - 1;
+  
+  return Rcpp::wrap(ptr->get_X(i));
+}
+
+RcppExport SEXP gee_jmcm__get_Z(SEXP xp, SEXP i_) {
+  Rcpp::XPtr<gee::gee_jmcm> ptr(xp);
+  int i = Rcpp::as<int>(i_) - 1;
+  
+  return Rcpp::wrap(ptr->get_Z(i));
+}
+
+RcppExport SEXP gee_jmcm__get_W(SEXP xp, SEXP i_) {
+  Rcpp::XPtr<gee::gee_jmcm> ptr(xp);
+  int i = Rcpp::as<int>(i_) - 1;
+  
+  return Rcpp::wrap(ptr->get_W(i));
+}
+
+RcppExport SEXP gee_jmcm__get_D(SEXP xp, SEXP x_, SEXP i_) {
+  Rcpp::XPtr<gee::gee_jmcm> ptr(xp);
+  
+  arma::vec x = Rcpp::as<arma::vec>(x_);
+  int i = Rcpp::as<int>(i_) - 1;
+  
+  ptr->UpdateGEES(x);
+  
+  return Rcpp::wrap(ptr->get_D(i));
+}
+
+RcppExport SEXP gee_jmcm__get_T(SEXP xp, SEXP x_, SEXP i_) {
+  Rcpp::XPtr<gee::gee_jmcm> ptr(xp);
+  
+  arma::vec x = Rcpp::as<arma::vec>(x_);
+  int i = Rcpp::as<int>(i_) - 1;
+  
+  ptr->UpdateGEES(x);
+  
+  return Rcpp::wrap(ptr->get_T(i));
+}
+
+RcppExport SEXP gee_jmcm__get_mu(SEXP xp, SEXP x_, SEXP i_) {
+  Rcpp::XPtr<gee::gee_jmcm> ptr(xp);
+  
+  arma::vec x = Rcpp::as<arma::vec>(x_);
+  int i = Rcpp::as<int>(i_) - 1;
+  
+  ptr->UpdateGEES(x);
+  
+  return Rcpp::wrap(ptr->get_mu(i));
+}
+
+RcppExport SEXP gee_jmcm__get_Sigma(SEXP xp, SEXP x_, SEXP i_) {
+  Rcpp::XPtr<gee::gee_jmcm> ptr(xp);
+  
+  arma::vec x = Rcpp::as<arma::vec>(x_);
+  int i = Rcpp::as<int>(i_) - 1;
+  
+  arma::mat Sigmai;
+  
+  ptr->UpdateGEES(x);
+  
+  return Rcpp::wrap(ptr->get_Sigma(i));
+}
