@@ -73,7 +73,8 @@ getGEER.geerMod <- function(object,
   opt     <- object@opt
   args    <- object@args
   devcomp <- object@devcomp
-
+  rho     <- object@rho
+  
   if(sub.num < 0 || sub.num > length(args$m))
     stop("incorrect value for 'sub.num'")
 
@@ -84,9 +85,11 @@ getGEER.geerMod <- function(object,
   W = args$W
   theta  = drop(opt$par)
 
-  if (devcomp$dims['MCD']) obj <- new("MCD", m, Y, X, Z, W)
-  if (devcomp$dims['ACD']) obj <- new("ACD", m, Y, X, Z, W)
-  if (devcomp$dims['HPC']) obj <- new("HPC", m, Y, X, Z, W)
+  if (devcomp$dims["ID"] == 1) corrStruct <- "id"
+  else if (devcomp$dims["CS"] == 1) corrStruct <- "cs"
+  else if (devcomp$dims["AR1"] == 1) corrStruct <- "ar1"
+  
+  obj <- new("gee_jmcm", m, Y, X, Z, W, corrStruct, rho)
 
   if(sub.num == 0) {
     switch(name,

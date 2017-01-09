@@ -24,6 +24,35 @@ setClass("geerMod",
     devcomp = "list"
     ))
 
+#' Class gee_jmcm
+#'
+#' Class \code{gee_jmcm} defines a joint mean covariance model based on Modified
+#' Cholesky decomposition (MCD).
+#'
+#' @name gee_jmcm-class
+#'
+#' @exportClass gee_jmcm
+setClass("gee_jmcm", representation(pointer="externalptr"))
+
+gee_jmcm_method <- function(name) {
+  paste("gee_jmcm", name, sep = "__")
+}
+
+#' Extract parts of gee_jmcm.
+#'
+#' @param x an object of gee_jmcm class
+#' @param name member function of gee_jmcm class
+setMethod("$", "gee_jmcm", function(x, name) {
+  geefun <- gee_jmcm_method(name)
+  function(...) .Call(geefun, x@pointer, ...)
+})
+
+setMethod("initialize", "gee_jmcm", function(.Object, ...) {
+  .Object@pointer <- .Call(gee_jmcm_method("new"), ...)
+  .Object
+})
+
+
 #' Class MCD
 #'
 #' Class \code{MCD} defines a joint mean covariance model based on Modified

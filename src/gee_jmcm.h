@@ -92,19 +92,20 @@ namespace gee {
 
       if (debug) Rcpp::Rcout << "gee_jmcm object created" << std::endl;
     }
+    
     ~gee_jmcm(){};
     
-    inline void set_free_param(const int n);
+    void set_free_param(const int n);
     
-    inline void set_params(const arma::vec &x);
-    inline arma::vec get_theta() const;
-    inline void set_beta(const arma::vec &beta);
-    inline arma::vec get_beta() const;
-    inline void set_lambda(const arma::vec &lambda);
-    inline arma::vec get_lambda() const;
-    inline void set_gamma(const arma::vec &gamma);
-    inline arma::vec get_gamma() const;
-    inline void set_weights(const arma::vec &H);
+    void set_params(const arma::vec &x);
+    arma::vec get_theta() const;
+    void set_beta(const arma::vec &beta);
+    arma::vec get_beta() const;
+    void set_lambda(const arma::vec &lambda);
+    arma::vec get_lambda() const;
+    void set_gamma(const arma::vec &gamma);
+    arma::vec get_gamma() const;
+    void set_weights(const arma::vec &H);
     
     arma::vec operator()(const arma::vec &x);
 
@@ -116,6 +117,19 @@ namespace gee {
     void UpdateLambda();
     void UpdateGamma();
 
+    inline arma::uword get_m(const arma::uword i) const;
+    inline arma::vec get_Y(const arma::uword i) const;
+    inline arma::mat get_X(const arma::uword i) const;
+    inline arma::mat get_Z(const arma::uword i) const;
+    inline arma::mat get_W(const arma::uword i) const;
+
+    inline arma::vec get_Resid(const arma::uword i) const;
+    inline arma::mat get_D(const arma::uword i) const;
+    inline arma::mat get_T(const arma::uword i) const;
+    inline arma::mat get_Sigma_inv(const arma::uword i) const;
+    inline arma::mat get_weights_sqrt(const arma::uword i) const;
+
+    
     bool learn(const arma::uvec &m, const arma::mat &Y, const arma::mat &X,
                const arma::mat &Z, const arma::mat &W,
                const gee_link_mode &link_mode, const gee_corr_mode &corr_mode,
@@ -163,18 +177,6 @@ namespace gee {
     double rho_;
     gee_link_mode link_mode_;
     gee_corr_mode corr_mode_;
-
-    inline arma::uword get_m(const arma::uword i) const;
-    inline arma::vec get_Y(const arma::uword i) const;
-    inline arma::mat get_X(const arma::uword i) const;
-    inline arma::mat get_Z(const arma::uword i) const;
-    inline arma::mat get_W(const arma::uword i) const;
-
-    inline arma::vec get_Resid(const arma::uword i) const;
-    inline arma::mat get_D(const arma::uword i) const;
-    inline arma::mat get_T(const arma::uword i) const;
-    inline arma::mat get_Sigma_inv(const arma::uword i) const;
-    inline arma::mat get_weights_sqrt(const arma::uword i) const;
     
     bool fs_iterate(const gee_link_mode &link_mode,
                     const gee_corr_mode &corr_mode, const double rho,
@@ -184,73 +186,53 @@ namespace gee {
                           const gee_corr_mode &corr_mode, const double rho);
   };
 
-  void gee_jmcm::set_free_param(const int n) { free_param_ = n; }
+  inline void gee_jmcm::set_free_param(const int n) { free_param_ = n; }
   
-  void gee_jmcm::set_params(const arma::vec &x) {
+  inline void gee_jmcm::set_params(const arma::vec &x) {
 
     int fp2 = free_param_;
     free_param_ = 0;
     UpdateGEES(x);
     free_param_ = fp2;
-    
-    /* int debug = 0; */
-    /* if (debug) Rcpp::Rcout << "inside of set_params" << std::endl; */
-    /* arma::uword lbta = X_.n_cols; */
-    /* arma::uword llmd = Z_.n_cols; */
-    /* arma::uword lgma = W_.n_cols; */
-    /* if (x.n_elem != (lbta + llmd + lgma)) */
-    /*   Rcpp::Rcerr << "gee_jmcm::set_params(): give vector has wrong dimension" */
-    /*            << std::endl; */
-
-    /* bta_ = x.rows(0, lbta - 1); */
-    /* lmd_ = x.rows(lbta, lbta + llmd - 1); */
-    /* gma_ = x.rows(lbta + llmd, lbta + llmd + lgma - 1); */
-
-    /* if (debug) Rcpp::Rcout << "set_param update" << std::endl; */
-
-    /* Xbta_ = X_ * bta_; */
-    /* Zlmd_ = Z_ * lmd_; */
-    /* Wgma_ = W_ * gma_; */
-    /* Resid_ = Y_ - Xbta_; */
   }
 
-  arma::vec gee_jmcm::get_theta() const { return tht_; }
+  inline arma::vec gee_jmcm::get_theta() const { return tht_; }
 
-  void gee_jmcm::set_beta(const arma::vec& x) {
+  inline void gee_jmcm::set_beta(const arma::vec& x) {
     int fp2 = free_param_;
     free_param_ = 1;
     UpdateGEES(x);
     free_param_ = fp2;
   }
 
-  arma::vec gee_jmcm::get_beta() const { return bta_; }
+  inline arma::vec gee_jmcm::get_beta() const { return bta_; }
 
-  void gee_jmcm::set_lambda(const arma::vec& x) {
+  inline void gee_jmcm::set_lambda(const arma::vec& x) {
     int fp2 = free_param_;
     free_param_ = 2;
     UpdateGEES(x);
     free_param_ = fp2;
   }
 
-  arma::vec gee_jmcm::get_lambda() const { return lmd_; }
+  inline arma::vec gee_jmcm::get_lambda() const { return lmd_; }
 
-  void gee_jmcm::set_gamma(const arma::vec& x) {
+  inline void gee_jmcm::set_gamma(const arma::vec& x) {
     int fp2 = free_param_;
     free_param_ = 3;
     UpdateGEES(x);
     free_param_ = fp2;
   }
 
-  arma::vec gee_jmcm::get_gamma() const { return gma_; }
+  inline arma::vec gee_jmcm::get_gamma() const { return gma_; }
 
-  void gee_jmcm::set_weights(const arma::vec &H) {
+  inline void gee_jmcm::set_weights(const arma::vec &H) {
     use_ipw_ = true;
     H_ = true;
   }
   
-  arma::uword gee_jmcm::get_m(const arma::uword i) const { return m_(i); }
+  inline arma::uword gee_jmcm::get_m(const arma::uword i) const { return m_(i); }
 
-  arma::vec gee_jmcm::get_Y(const arma::uword i) const {
+  inline arma::vec gee_jmcm::get_Y(const arma::uword i) const {
     arma::vec Yi;
     if (i == 0)
       Yi = Y_.subvec(0, m_(0) - 1);
@@ -261,7 +243,7 @@ namespace gee {
     return Yi;
   }
 
-  arma::mat gee_jmcm::get_X(const arma::uword i) const {
+  inline arma::mat gee_jmcm::get_X(const arma::uword i) const {
     arma::mat Xi;
     if (i == 0)
       Xi = X_.rows(0, m_(0) - 1);
@@ -272,7 +254,7 @@ namespace gee {
     return Xi;
   }
 
-  arma::mat gee_jmcm::get_Z(const arma::uword i) const {
+  inline arma::mat gee_jmcm::get_Z(const arma::uword i) const {
     arma::mat Zi;
     if (i == 0)
       Zi = Z_.rows(0, m_(0) - 1);
@@ -283,7 +265,7 @@ namespace gee {
     return Zi;
   }
 
-  arma::mat gee_jmcm::get_W(const arma::uword i) const {
+  inline arma::mat gee_jmcm::get_W(const arma::uword i) const {
     arma::mat Wi;
     if (m_(i) != 1) {
       if (i == 0) {
@@ -302,7 +284,7 @@ namespace gee {
     return Wi;
   }
 
-  arma::vec gee_jmcm::get_Resid(const arma::uword i) const {
+  inline arma::vec gee_jmcm::get_Resid(const arma::uword i) const {
     arma::vec ri;
     if (i == 0)
       ri = Resid_.subvec(0, m_(0) - 1);
@@ -313,7 +295,7 @@ namespace gee {
     return ri;
   }
 
-  arma::mat gee_jmcm::get_D(const arma::uword i) const {
+  inline arma::mat gee_jmcm::get_D(const arma::uword i) const {
     arma::mat Di = arma::eye(m_(i), m_(i));
     if (i == 0)
       Di = arma::diagmat(arma::exp(Zlmd_.subvec(0, m_(0) - 1)));
@@ -324,7 +306,7 @@ namespace gee {
     return Di;
   }
 
-  arma::mat gee_jmcm::get_T(const arma::uword i) const {
+  inline arma::mat gee_jmcm::get_T(const arma::uword i) const {
     arma::mat Ti = arma::eye(m_(i), m_(i));
     if (m_(i) != 1) {
       if (i == 0) {
@@ -343,14 +325,14 @@ namespace gee {
     return Ti;
   }
 
-  arma::mat gee_jmcm::get_Sigma_inv(const arma::uword i) const {
+  inline arma::mat gee_jmcm::get_Sigma_inv(const arma::uword i) const {
     arma::mat Ti = get_T(i);
     arma::mat Di = get_D(i);
     arma::mat Di_inv = arma::diagmat(arma::pow(Di.diag(), -1));
     return Ti.t() * Di_inv * Ti;
   }
 
-  arma::mat gee_jmcm::get_weights_sqrt(const arma::uword i) const {
+  inline arma::mat gee_jmcm::get_weights_sqrt(const arma::uword i) const {
     arma::mat result = arma::eye(m_(i), m_(i));
     if (i == 0)
       result = arma::diagmat(arma::sqrt(H_.subvec(0, m_(0) - 1)));

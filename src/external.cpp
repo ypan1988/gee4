@@ -240,93 +240,6 @@ Rcpp::List geerfit_id(arma::uvec m,
   arma::vec x = start;
 
   int n_iters  = 0;
-
-  // if (profile) {
-  //   if(debug) {
-  //     Rcpp::Rcout << "Start profile opt ... " << std::endl;
-  //     x.print("start value: ");
-  //   }
-  //
-  //   // Maximum number of iterations
-  //   const int kIterMax = 200;
-  //
-  //   // Machine precision
-  //   const double kEpsilon = std::numeric_limits<double>::epsilon();
-  //
-  //   // convergence criterion on x values
-  //   const double kTolX = 4 * kEpsilon;
-  //
-  //   // Scaled maximum step length allowed in line searches
-  //   const double kScaStepMax = 100;
-  //
-  //   const double grad_tol = 1e-6;
-  //
-  //   const int n_pars = x.n_rows;  // number of parameters
-  //
-  //   //double f = gees(x);
-  //   arma::vec grad;
-  //   grad = gees(x);
-  //
-  //   // Initialize the inverse Hessian to a unit matrix
-  //   arma::mat hess_inv = arma::eye<arma::mat>(n_pars, n_pars);
-  //
-  //   // Initialize the maximum step length
-  //   double sum = sqrt(arma::dot(x, x));
-  //   const double kStepMax = kScaStepMax * std::max(sum, double(n_pars));
-  //
-  //   if (debug) Rcpp::Rcout << "Before for loop" << std::endl;
-  //
-  //   // Main loop over the iterations
-  //   for (int iter = 0; iter != kIterMax; ++iter) {
-  //     if (debug) Rcpp::Rcout << "iter " << iter << ":" << std::endl;
-  //
-  //     n_iters = iter;
-  //
-  //     arma::vec x2 = x;   // Save the old point
-  //
-  //
-  //     p = x - x2;
-  //     x2 = x;
-  //
-  //     if (trace) {
-  //       Rcpp::Rcout << std::setw(5) << iter << ": "
-  //                   << std::setw(10) << gees(x) << ": ";
-  //       x.t().print();
-  //
-  //     }
-  //
-  //     if (debug) Rcpp::Rcout << "Checking convergence..." << std::endl;
-  //     // Test for convergence on Delta x
-  //     double test = 0.0;
-  //     for (int i = 0; i != n_pars; ++i) {
-  //       double temp = std::abs(p(i)) / std::max(std::abs(x(i)), 1.0);
-  //       if (temp > test) test = temp;
-  //     }
-  //
-  //     if (test < kTolX) {
-  //       if (debug) {
-  //         Rcpp::Rcout << "Test for convergence on Delta x: converged."
-  //                     << std::endl;
-  //       }
-  //       break;
-  //     }
-  //
-  //     if (debug) Rcpp::Rcout << "Update beta..." << std::endl;
-  //     gees.UpdateBeta();
-  //
-  //     if (debug) Rcpp::Rcout << "Update lambda..." << std::endl;
-  //     gees.UpdateLambda();
-  //
-  //     if (debug) Rcpp::Rcout << "Update gamma..." << std::endl;
-  //     gees.UpdateGamma();
-  //
-  //   } // for loop
-  //
-  // }
-
-
-
-
   //double f_min = 0.0;
   newt.Optimize(x, 1.0e-6, trace);
   //f_min = newt.f_min();
@@ -442,4 +355,33 @@ Rcpp::List geerfit_ar1(arma::uvec m,
                             Rcpp::Named("QIC") = -2 * quasilik / n_sub + 2 * n_par / n_sub,
                             Rcpp::Named("iter") = n_iters);
 
+}
+
+RcppExport SEXP gee_jmcm__new(SEXP m_, SEXP Y_, SEXP X_, SEXP Z_, SEXP W_,
+			 SEXP corrStruct_, SEXP rho_) {  
+  arma::uvec m = Rcpp::as<arma::uvec>(m_);
+  arma::vec Y = Rcpp::as<arma::vec>(Y_);
+  arma::mat X = Rcpp::as<arma::mat>(X_);
+  arma::mat Z = Rcpp::as<arma::mat>(Z_);
+  arma::mat W = Rcpp::as<arma::mat>(W_);
+
+  std::string corrStruct = Rcpp::as<std::string>(corrStruct_);
+  double rho = Rcpp::as<double>(rho_);
+  
+  gee_corr_mode corr_mode(0);
+  if (corrStruct == "id") corr_mode.setid(1);
+  else if (corrStruct == "cs") corr_mode.setid(2);
+  else if (corrStruct == "ar1") corr_mode.setid(3);
+
+  Rcpp::XPtr<gee::gee_jmcm>
+    ptr(new gee::gee_jmcm(m, Y, X, Z, W, rho, identity_link, corr_mode), true);
+
+  return ptr;
+}
+
+RcppExport SEXP gee_jmcm__get_m(SEXP xp, SEXP i_) {
+  Rcpp::XPtr<gee::gee_jmcm> ptr(xp);
+  int i = Rcpp::as<int>(i_) - 1;
+
+  return Rcpp::wrap(ptr->get_m(i));
 }
