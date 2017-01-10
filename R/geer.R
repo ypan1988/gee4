@@ -54,6 +54,31 @@ NULL
 NULL
 
 
+#' PANSS Data
+#'
+#' The PANSS or the Positive and Negative Syndrome Scale is a medical scale used
+#' for measuring symptom severity of patients with schizophrenic
+#' conditions. panss contains data from a longitudinal study where 3 different
+#' treatments were considered. Patients were followed for 8 weeks and PANSS
+#' score was recorded on week 0, 1, 2, 4, 6 and 8. The lower PANSS score a
+#' patient has, the less symptoms. Data was extracted from a larger, and
+#' confidential, set of clinical trial data from a randomised clinical trial.
+#'
+#' \itemize{
+#'   \item treat: a factor variable with 3 levels
+#'   \item time: measurement time
+#'   \item Y: PANSS score
+#'   \item id: subject id
+#' }
+#'
+#' @docType data
+#' @keywords datasets
+#' @name panss
+#' @usage data(panss)
+#' @format A data frame with 685 rows and 4 variables
+NULL
+
+
 #' @title Fit Joint Mean-Covariance Models
 #'
 #' @description Fit a joint mean-covariance model to longitudinal data within
@@ -255,7 +280,10 @@ optimizeGeer <- function(m, Y, X, Z, W, time, method, corr.struct, rho, ipw.orde
   }
 
   H <- rep(1, length(Y))
-  if (method == 'wgee-mcd') ipw_estimation(m, Y, ipw.order)
+  if (method == 'wgee-mcd') {
+    ipwest <- ipw_estimation(m, Y, ipw.order)
+    H <- ipwest$weights 
+  }
   est <- gees_estimation(m, Y, X, Z, W, H, method, corr.struct, rho, start, control$trace, control$profile, control$errorMsg)
   
   # if (corr.struct == 'id') {

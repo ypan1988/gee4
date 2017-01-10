@@ -125,13 +125,13 @@ namespace gee {
 
     arma::vec get_Resid(const arma::uword i) const;
     arma::mat get_D(const arma::uword i) const;
-    inline arma::mat get_T(const arma::uword i) const;
+    arma::mat get_T(const arma::uword i) const;
     
     arma::vec get_mu(const arma::uword i) const;
     arma::mat get_Sigma(const arma::uword i) const;
     
-    inline arma::mat get_Sigma_inv(const arma::uword i) const;
-    inline arma::mat get_weights_sqrt(const arma::uword i) const;
+    arma::mat get_Sigma_inv(const arma::uword i) const;
+    arma::mat get_weights_sqrt(const arma::uword i) const;
 
     
     bool learn(const arma::uvec &m, const arma::mat &Y, const arma::mat &X,
@@ -231,7 +231,7 @@ namespace gee {
 
   inline void gee_jmcm::set_weights(const arma::vec &H) {
     use_ipw_ = true;
-    H_ = true;
+    H_ = H;
   }
   
   inline arma::uword gee_jmcm::get_m(const arma::uword i) const { return m_(i); }
@@ -362,12 +362,21 @@ namespace gee {
   }
 
   inline arma::mat gee_jmcm::get_weights_sqrt(const arma::uword i) const {
+
+    int debug = 0;
+    
     arma::mat result = arma::eye(m_(i), m_(i));
-    if (i == 0)
-      result = arma::diagmat(arma::sqrt(H_.subvec(0, m_(0) - 1)));
-    else {
-      arma::uword rindex = arma::sum(m_.subvec(0, i - 1));
-      result = arma::diagmat(arma::sqrt(H_.subvec(rindex, rindex + m_(i) - 1)));
+    if (i == 0) {
+      if (debug) Rcpp::Rcout << "i = " << i << std::endl;
+      arma::vec Hi = H_.subvec(0, m_(0) - 1);
+      result = arma::diagmat(arma::sqrt(Hi));
+      if (debug) result.print("result = ");
+    } else {
+      if (debug) Rcpp::Rcout << "i = " << i << std::endl;
+      arma::uword vindex = arma::sum(m_.subvec(0, i - 1));
+      arma::vec Hi = H_.subvec(vindex, vindex + m_(i) - 1);
+      result = arma::diagmat(arma::sqrt(Hi));
+      if (debug) result.print("result = ");
     }
     return result;
   }
