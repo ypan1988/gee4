@@ -52,13 +52,15 @@ namespace gee {
           
           double tmp = arma::as_scalar(arma::exp(Z_ij.t() * alpha));
           double p_ij =  tmp / (1 + tmp);
-          result += 1 * (1 - p_ij) * Z_ij;
+          //// result += 1 * (1 - p_ij) * Z_ij;
+	  result += 1 * (1 - 1 - p_ij) * Z_ij;
         }
 	if (m_(i) != max_obs) {
 	  arma::vec Z_ij = get_Z(i, m_(i));
 	  double tmp = arma::as_scalar(arma::exp(Z_ij.t() * alpha));
 	  double p_ij =  tmp / (1 + tmp);
-	  result += 1 * (0 - p_ij) * Z_ij; 
+	  //// result += 1 * (0 - p_ij) * Z_ij;
+	  result += 1 * (1 - 0 - p_ij) * Z_ij;
 	}
       }
 
@@ -66,7 +68,7 @@ namespace gee {
     }
 
     arma::vec CalWeights(const arma::vec &alpha) {
-      int debug = 0;
+      int debug = 1;
       
       arma::uword nsub = m_.n_elem;
       arma::uword npar = alpha.n_elem;
@@ -87,16 +89,17 @@ namespace gee {
             arma::vec Z_ij = get_Z(i, j);            
             double tmp = arma::as_scalar(arma::exp(Z_ij.t() * alpha));
             double p_ij =  tmp / (1 + tmp);
-	    /* if (debug && i == (nsub - 1)) { */
-	    /*   Rcpp::Rcout << "j = " << j+1 << std::endl; */
-	    /*   get_Y(i).t().print("Y = "); */
-	    /*   Z_ij.print("Z_ij = "); */
-	    /*   alpha.print("alpha = "); */
-	    /*   Rcpp::Rcout << "tmp  = " << tmp  << std::endl; */
-	    /*   Rcpp::Rcout << "p_ij = " << p_ij << std::endl; */
-	    /* } */
+	    if (debug && i == (nsub - 1)) {
+	      Rcpp::Rcout << "j = " << j+1 << std::endl;
+	      get_Y(i).t().print("Y = ");
+	      Z_ij.print("Z_ij = ");
+	      alpha.print("alpha = ");
+	      Rcpp::Rcout << "tmp  = " << tmp  << std::endl;
+	      Rcpp::Rcout << "p_ij = " << p_ij << std::endl;
+	    }
             p_i(j) = p_ij;
-            Pi_i(j) = Pi_i(j-1) * (1 - p_ij);
+            //// Pi_i(j) = Pi_i(j-1) * (1 - p_ij);
+	    Pi_i(j) = 1 - p_ij;
 
 	    if (Pi_i(j) < 1e-7) Pi_i(j) = 1e-7;  
 	    
