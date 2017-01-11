@@ -62,7 +62,7 @@ getGEER <- function(object, name, sub.num) UseMethod("getGEER")
 #' @export
 getGEER.geerMod <- function(object,
   name = c("m", "Y", "X", "Z", "W", "D", "T", "Sigma", "mu",
-    "theta", "beta", "lambda", "gamma", "loglik", "BIC", "iter",
+    "theta", "beta", "lambda", "gamma", "alpha", "loglik", "BIC", "iter",
     "triple"),
   sub.num = 0)
 {
@@ -102,6 +102,7 @@ getGEER.geerMod <- function(object,
       "beta"   = drop(opt$beta),
       "lambda" = drop(opt$lambda),
       "gamma"  = drop(opt$gamma),
+      "alpha"  = drop(opt$alpha),
       "loglik" = opt$loglik,
       "BIC"    = opt$BIC,
       "iter"   = opt$iter,

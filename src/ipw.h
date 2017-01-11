@@ -27,7 +27,7 @@ namespace gee {
       if ((j+1) <= order_) Z_ij(0) = 1;
       else {
         Z_ij(0) = 1;
-        for (auto k = 1; k <= order_; ++k) Z_ij(k) = Yi(j - k); 
+        for (arma::uword k = 1; k <= order_; ++k) Z_ij(k) = Yi(j - k); 
       }
 
       return Z_ij;
@@ -39,9 +39,9 @@ namespace gee {
       arma::uword npar = alpha.n_elem;
 
       arma::vec result = arma::zeros<arma::vec>(npar);
-      for (auto i = 0; i != nsub; ++i) {
+      for (arma::uword i = 0; i != nsub; ++i) {
         //arma::vec Yi = get_Y(i);
-        for (auto j = 1; j != m_(i); ++j) {
+        for (arma::uword j = 1; j != m_(i); ++j) {
           arma::vec Z_ij = get_Z(i, j);
           /* arma::vec Z_ij = arma::zeros<arma::vec>(npar); */
           /* if ((j+1) <= order_) Z_ij(0) = 1; */
@@ -75,11 +75,11 @@ namespace gee {
       
       arma::uword index = 0;
       arma::vec result = arma::zeros<arma::vec>(Y_.n_elem);
-      for (auto i = 0; i != nsub; ++i) {
+      for (arma::uword i = 0; i != nsub; ++i) {
         //arma::vec Yi = get_Y(i);
         arma::vec p_i = arma::zeros<arma::vec>(m_(i));
         arma::vec Pi_i = arma::zeros<arma::vec>(m_(i));
-        for (auto j = 0; j != m_(i); ++j, ++index) {
+        for (arma::uword j = 0; j != m_(i); ++j, ++index) {
           
           if (j == 0) {
             p_i(0) = 0;

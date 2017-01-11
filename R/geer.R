@@ -288,6 +288,8 @@ optimizeGeer <- function(m, Y, X, Z, W, time, method, corr.struct, rho, ipw.orde
   }
   est <- gees_estimation(m, Y, X, Z, W, H, method, corr.struct, rho, start, control$trace, control$profile, control$errorMsg)
 
+  est <- c(est, list(alpha = alpha))
+  
   if (!(control$ignore.const.term)) {
     const.term = - sum(m) * 0.5 * log(2 * pi)
     est$quasilik = est$quasilik + const.term
