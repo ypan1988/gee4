@@ -71,7 +71,7 @@ namespace gee {
       int debug = 0;
       
       arma::uword nsub = m_.n_elem;
-      arma::uword npar = alpha.n_elem;
+      // arma::uword npar = alpha.n_elem;
       
       arma::uword index = 0;
       arma::vec result = arma::zeros<arma::vec>(Y_.n_elem);

@@ -113,7 +113,7 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
       
       // arma::vec g = fvec; 
       arma::vec xold = x;            // store x
-      double fold = f;               // store f
+      // double fold = f;               // store f
 
       if (debug) Rcpp::Rcout << "Update beta..." << std::endl;
       gees.UpdateBeta();
