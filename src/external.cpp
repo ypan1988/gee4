@@ -16,7 +16,7 @@ Rcpp::List ipw_estimation(arma::uvec m, arma::vec Y, arma::uword order, bool tra
   dragonwell::Newton<gee::ipw> newt(weights);
 
 
-  trace = true;
+  //trace = true;
   arma::vec x = arma::zeros<arma::vec>(order + 1);
   newt.Optimize(x, 1.0e-6, trace);
   arma::vec result = weights.CalWeights(x);
@@ -52,7 +52,7 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
   if (debug) Rcpp::Rcout << "gees_estimation(): creating gees object..." << std::endl;
   gee::gee_jmcm gees(m, Y, X, Z, W, rho, identity_link, corr_mode);
   if (method == "wgee-mcd") {
-    Rcpp::Rcout << "length(H) = " << H.n_rows << std::endl;
+    //Rcpp::Rcout << "length(H) = " << H.n_rows << std::endl;
     //Rcpp::Rcout << "length(Y) = " << Y.n_elem << std::endl;
     gees.set_weights(H);
   }
