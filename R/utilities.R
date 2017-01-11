@@ -134,6 +134,137 @@ lagseq <- function(time)
   res
 }
 
+#'
+#'
+#' @export
+fittedcurve <- function(object, text = "fitted curve", ...)
+{
+  dots <- list(...)
+  ndots <- length(dots)
+
+  layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE))
+  
+  # initialization
+  opt <- object@opt
+  
+  beta <- opt$beta
+  lambda <- opt$lambda
+  gamma  <- opt$gamma
+  
+  lbta <- length(beta)
+  llmd <- length(lambda)
+  lgma <- length(gamma)
+  
+  args   <- object@args
+  Y <- args[["Y"]]
+  time <- args[["time"]]
+  
+  ts   <- seq(min(time), max(time), length.out = 100)
+  tslag <- seq(0, max(time) - min(time), length.out = 100)
+  
+  ###############################
+  # plot the fitted mean curves #
+  ###############################
+  X.ts    <- NULL
+  for(i in 0:(lbta-1)) X.ts    <- cbind(X.ts, ts^i)
+  
+  Yest <- drop(X.ts %*% beta)
+  # plot(ts, Yest, type = "l", xlab = "Time", ylab = "Response")
+  plot(ts, Yest, type = "l", ylim = c(min(Y), max(Y)), xlab = "Time", ylab = "Response")
+  # plot(time, Y, xlab = "Time", ylab = "Response")
+  # lines(ts, Yest)
+  
+  if(ndots)
+  for(i in 1:(ndots/2)) {
+    object2 <- dots[[2*i-1]]
+    text2   <- dots[[2*i]]
+    text    <- c(text, text2)
+    
+    opt2 <- object2@opt
+    beta2 <- opt2$beta
+    lbta2 <- length(beta2)
+    
+    Yest2 <- drop(X.ts %*% beta2)
+    
+    col <- 'black' 
+    if(i > 5) col <- 'grey'
+    lines(ts, Yest2, lty = (i+1), col = col)
+  }
+  
+  col <- rep('black', ndots/2 + 1)
+  ncol <- 1
+  if (ndots/2 > 5) {
+    col <- c(rep('black', 6), rep('grey', ndots/2 - 5))
+    ncol = 2
+  }
+  legend(min(ts), max(Y), text, lty=1:(ndots/2+1), col=col, ncol=ncol)
+
+  Z.ts    <- NULL
+  W.tslag <- NULL
+  
+  for(i in 0:(llmd-1)) Z.ts    <- cbind(Z.ts, ts^i)
+  for(i in 0:(lgma-1)) W.tslag <- cbind(W.tslag, tslag^i)
+  
+  Zlmd <- Z.ts %*% lambda
+  Wgma <- W.tslag %*% gamma
+  
+  ####################################
+  # plot the fitted curves for logIV #
+  ####################################
+  ylim.max <- max(Zlmd)
+  ylim.min <- min(Zlmd)
+  ylim.diff <- ylim.max - ylim.min
+  plot(ts, Zlmd, type = "l", 
+       ylim = c(ylim.min-0.5*ylim.diff, ylim.max+0.5*ylim.diff),
+       xlab="Time", ylab="Log-innovat. var.")
+
+  if(ndots)
+  for(i in 1:(ndots/2)) {
+    object2 <- dots[[2*i-1]]
+    text2   <- dots[[2*i]]
+    
+    opt2 <- object2@opt
+    lambda2 <- opt2$lambda
+    llmd2 <- length(lambda2)
+    
+    Zlmd2 <- Z.ts %*% lambda2
+    
+    col <- 'black' 
+    if(i > 5) col <- 'grey'
+    lines(ts, Zlmd2, lty = (i+1), col = col)
+  }
+  
+  ###################################
+  # plot the fitted curves for GARP #
+  ###################################
+  ylim.max <- max(Wgma)
+  ylim.min <- min(Wgma)
+  ylim.diff <- ylim.max - ylim.min
+  plot(tslag, Wgma, type = "l",
+       ylim = c(ylim.min-0.5*ylim.diff, ylim.max+0.5*ylim.diff),
+       xlab="Lag", ylab="Autoregres. coeffic.")
+  # phi <- -Tt[upper.tri(Tt, diag=FALSE)]
+  # plot(tlag, phi, xlab="Lag", ylab="Autoregres. coeffic.")
+  # lines(tslag, Wgma)
+  
+  if(ndots)
+  for(i in 1:(ndots/2)) {
+    object2 <- dots[[2*i-1]]
+    text2   <- dots[[2*i]]
+    
+    opt2 <- object2@opt
+    gamma2 <- opt2$gamma
+    lgma2 <- length(gamma2)
+    
+    Wgma2 <- W.tslag %*% gamma2
+    
+    col <- 'black' 
+    if(i > 5) col <- 'grey'
+    lines(tslag, Wgma2, lty = (i+1), col = col)
+  }
+  
+}
+
 #' @title Plot Fitted Mean Curves
 #'
 #' @description plot fitted mean curves
