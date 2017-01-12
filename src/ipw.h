@@ -52,7 +52,7 @@ namespace gee {
           
           double tmp = arma::as_scalar(arma::exp(Z_ij.t() * alpha));
           double p_ij =  tmp / (1 + tmp);
-          //// result += 1 * (1 - p_ij) * Z_ij;
+          ////result += 1 * (1 - p_ij) * Z_ij;
 	  result += 1 * (1 - 1 - p_ij) * Z_ij;
         }
 	if (m_(i) != max_obs) {
@@ -68,7 +68,7 @@ namespace gee {
     }
 
     arma::vec CalWeights(const arma::vec &alpha) {
-      int debug = 0;
+      int debug = 1;
       
       arma::uword nsub = m_.n_elem;
       // arma::uword npar = alpha.n_elem;
