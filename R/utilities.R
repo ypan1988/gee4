@@ -100,7 +100,7 @@ getGEER.geerMod <- function(object,
       "W" = args$W,
       "FIM" = obj$get_fim(theta),
       "theta"  = drop(opt$par),
-      "sd" = sqrt(diag(solve(obj$get_fim(theta)))), 
+      "sd" = obj$get_sd(theta), 
       "beta"   = drop(opt$beta),
       "lambda" = drop(opt$lambda),
       "gamma"  = drop(opt$gamma),
@@ -140,12 +140,33 @@ lagseq <- function(time)
 #'
 #'
 #' @export
-fittedcurve <- function(object, text = "fitted curve", ...)
+fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
 {
   dots <- list(...)
   ndots <- length(dots)
 
   layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE))
+  
+  # create a gee_jmcm object
+  opt     <- object@opt
+  args    <- object@args
+  devcomp <- object@devcomp
+  rho     <- object@rho
+
+  m = args$m
+  Y = args$Y
+  X = args$X
+  Z = args$Z
+  W = args$W
+  theta  = drop(opt$par)
+  
+  if (devcomp$dims["ID"] == 1) corrStruct <- "id"
+  else if (devcomp$dims["CS"] == 1) corrStruct <- "cs"
+  else if (devcomp$dims["AR1"] == 1) corrStruct <- "ar1"
+  
+  obj <- new("gee_jmcm", m, Y, X, Z, W, corrStruct, rho)
+  sd  <- obj$get_sd(theta)
+  fim <- obj$get_fim(theta)
   
   # initialization
   opt <- object@opt
@@ -158,6 +179,9 @@ fittedcurve <- function(object, text = "fitted curve", ...)
   llmd <- length(lambda)
   lgma <- length(gamma)
   
+  lmd_sd <- sd[(lbta+1):(lbta+llmd)]
+  gma_sd <- sd[(lbta+llmd+1):(lbta+llmd+lgma)]
+    
   args   <- object@args
   Y <- args[["Y"]]
   time <- args[["time"]]
@@ -177,7 +201,16 @@ fittedcurve <- function(object, text = "fitted curve", ...)
   # plot(time, Y, xlab = "Time", ylab = "Response")
   # lines(ts, Yest)
   
-  if(ndots)
+  if (include.CI) {
+    fim_bta <- fim[1:lbta,1:lbta]
+    Y_var <- diag(X.ts %*% tcrossprod(solve(fim_bta),X.ts)) 
+    Yest.u <- Yest + 1.96 * sqrt(Y_var)
+    Yest.l <- Yest - 1.96 * sqrt(Y_var)
+    lines(ts, Yest.u, lty = 2)
+    lines(ts, Yest.l, lty = 2)
+  }
+  
+  if (ndots)
   for(i in 1:(ndots/2)) {
     object2 <- dots[[2*i-1]]
     text2   <- dots[[2*i]]
@@ -221,6 +254,15 @@ fittedcurve <- function(object, text = "fitted curve", ...)
        ylim = c(ylim.min-0.5*ylim.diff, ylim.max+0.5*ylim.diff),
        xlab="Time", ylab="Log-innovat. var.")
 
+  if (include.CI) {
+    fim_lmd <- fim[(lbta+1):(lbta+llmd), (lbta+1):(lbta+llmd)]
+    Zlmd_var <- diag(Z.ts %*% tcrossprod(solve(fim_lmd),Z.ts)) 
+    Zlmd.u <- Zlmd + 1.96 * sqrt(Zlmd_var)
+    Zlmd.l <- Zlmd - 1.96 * sqrt(Zlmd_var)
+    lines(ts, Zlmd.u, lty = 2)
+    lines(ts, Zlmd.l, lty = 2)
+  }
+  
   if(ndots)
   for(i in 1:(ndots/2)) {
     object2 <- dots[[2*i-1]]
@@ -249,6 +291,15 @@ fittedcurve <- function(object, text = "fitted curve", ...)
   # phi <- -Tt[upper.tri(Tt, diag=FALSE)]
   # plot(tlag, phi, xlab="Lag", ylab="Autoregres. coeffic.")
   # lines(tslag, Wgma)
+  
+  if (include.CI) {
+    fim_gma <- fim[(lbta+llmd+1):(lbta+llmd+lgma), (lbta+llmd+1):(lbta+llmd+lgma)]
+    Wgma_var <- diag(W.tslag %*% tcrossprod(solve(fim_gma),W.tslag)) 
+    Wgma.u <- Wgma + 1.96 * sqrt(Wgma_var)
+    Wgma.l <- Wgma - 1.96 * sqrt(Wgma_var)
+    lines(tslag, Wgma.u, lty = 2)
+    lines(tslag, Wgma.l, lty = 2)
+  }
   
   if(ndots)
   for(i in 1:(ndots/2)) {

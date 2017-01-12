@@ -134,6 +134,7 @@ namespace gee {
     arma::mat get_weights_sqrt(const arma::uword i) const;
 
     arma::mat get_fim() const; // get the fisher information matrix
+    arma::vec get_sd() const;  // get the standand deviation of params
     
     bool learn(const arma::uvec &m, const arma::mat &Y, const arma::mat &X,
                const arma::mat &Z, const arma::mat &W,
@@ -473,6 +474,25 @@ namespace gee {
     fim.submat(n_bta+n_lmd, n_bta+n_lmd, n_bta+n_lmd+n_gma-1, n_bta+n_lmd+n_gma-1) = fim_gma;
     
     return fim;
+  }
+
+  inline arma::vec gee_jmcm::get_sd() const {
+    arma::uword n_bta = X_.n_cols;
+    arma::uword n_lmd = Z_.n_cols;
+    arma::uword n_gma = W_.n_cols;
+    
+    arma::mat fim = get_fim();
+    arma::mat fim_bta = fim.submat(0, 0, n_bta-1, n_bta-1);
+    arma::mat fim_lmd = fim.submat(n_bta, n_bta, n_bta+n_lmd-1, n_bta+n_lmd-1);
+    arma::mat fim_gma = fim.submat(n_bta+n_lmd, n_bta+n_lmd,
+				   n_bta+n_lmd+n_gma-1, n_bta+n_lmd+n_gma-1);
+
+    arma::vec bta_sd = arma::sqrt(arma::diagvec(fim_bta.i()));
+    arma::vec lmd_sd = arma::sqrt(arma::diagvec(fim_lmd.i()));
+    arma::vec gma_sd = arma::sqrt(arma::diagvec(fim_gma.i()));
+
+    arma::vec sd = dragonwell::join_vecs({bta_sd, lmd_sd, gma_sd});
+    return sd;
   }
 }  // namespace gee4
 
