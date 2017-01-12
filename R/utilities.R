@@ -192,6 +192,8 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
   ###############################
   # plot the fitted mean curves #
   ###############################
+  nline <- 1
+  
   X.ts    <- NULL
   for(i in 0:(lbta-1)) X.ts    <- cbind(X.ts, ts^i)
   
@@ -202,16 +204,20 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
   # lines(ts, Yest)
   
   if (include.CI) {
+    nline <- nline + 1
     fim_bta <- fim[1:lbta,1:lbta]
     Y_var <- diag(X.ts %*% tcrossprod(solve(fim_bta),X.ts)) 
     Yest.u <- Yest + 1.96 * sqrt(Y_var)
     Yest.l <- Yest - 1.96 * sqrt(Y_var)
     lines(ts, Yest.u, lty = 2)
     lines(ts, Yest.l, lty = 2)
+    text <- c(text, "95% confidence intervals")
   }
   
   if (ndots)
   for(i in 1:(ndots/2)) {
+    nline <- nline + 1
+    
     object2 <- dots[[2*i-1]]
     text2   <- dots[[2*i]]
     text    <- c(text, text2)
@@ -223,17 +229,17 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
     Yest2 <- drop(X.ts %*% beta2)
     
     col <- 'black' 
-    if(i > 5) col <- 'grey'
-    lines(ts, Yest2, lty = (i+1), col = col)
+    if(nline > 6) col <- 'grey'
+    lines(ts, Yest2, lty = nline, col = col)
   }
   
-  col <- rep('black', ndots/2 + 1)
-  ncol <- 1
-  if (ndots/2 > 5) {
-    col <- c(rep('black', 6), rep('grey', ndots/2 - 5))
-    ncol = 2
+  col <- rep('black', nline)
+  if (nline > 6) {
+    col <- c(rep('black', 6), rep('grey', nline - 6))
   }
-  legend(min(ts), max(Y), text, lty=1:(ndots/2+1), col=col, ncol=ncol)
+  ncol <- 1 
+  if (nline > 5) ncol <- 2
+  legend(min(ts), max(Y), text, lty=1:nline, col=col, ncol=ncol)
 
   Z.ts    <- NULL
   W.tslag <- NULL
@@ -247,6 +253,8 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
   ####################################
   # plot the fitted curves for logIV #
   ####################################
+  nline <- 1
+  
   ylim.max <- max(Zlmd)
   ylim.min <- min(Zlmd)
   ylim.diff <- ylim.max - ylim.min
@@ -255,6 +263,7 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
        xlab="Time", ylab="Log-innovat. var.")
 
   if (include.CI) {
+    nline <- nline + 1
     fim_lmd <- fim[(lbta+1):(lbta+llmd), (lbta+1):(lbta+llmd)]
     Zlmd_var <- diag(Z.ts %*% tcrossprod(solve(fim_lmd),Z.ts)) 
     Zlmd.u <- Zlmd + 1.96 * sqrt(Zlmd_var)
@@ -265,6 +274,7 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
   
   if(ndots)
   for(i in 1:(ndots/2)) {
+    nline <- nline + 1
     object2 <- dots[[2*i-1]]
     text2   <- dots[[2*i]]
     
@@ -275,13 +285,15 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
     Zlmd2 <- Z.ts %*% lambda2
     
     col <- 'black' 
-    if(i > 5) col <- 'grey'
-    lines(ts, Zlmd2, lty = (i+1), col = col)
+    if(nline > 6) col <- 'grey'
+    lines(ts, Zlmd2, lty = nline, col = col)
   }
   
   ###################################
   # plot the fitted curves for GARP #
   ###################################
+  nline <- 1
+  
   ylim.max <- max(Wgma)
   ylim.min <- min(Wgma)
   ylim.diff <- ylim.max - ylim.min
@@ -293,6 +305,7 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
   # lines(tslag, Wgma)
   
   if (include.CI) {
+    nline <- nline + 1
     fim_gma <- fim[(lbta+llmd+1):(lbta+llmd+lgma), (lbta+llmd+1):(lbta+llmd+lgma)]
     Wgma_var <- diag(W.tslag %*% tcrossprod(solve(fim_gma),W.tslag)) 
     Wgma.u <- Wgma + 1.96 * sqrt(Wgma_var)
@@ -303,6 +316,7 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
   
   if(ndots)
   for(i in 1:(ndots/2)) {
+    nline <- nline + 1
     object2 <- dots[[2*i-1]]
     text2   <- dots[[2*i]]
     
@@ -313,8 +327,8 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
     Wgma2 <- W.tslag %*% gamma2
     
     col <- 'black' 
-    if(i > 5) col <- 'grey'
-    lines(tslag, Wgma2, lty = (i+1), col = col)
+    if(nline > 6) col <- 'grey'
+    lines(tslag, Wgma2, lty = nline, col = col)
   }
   
 }
