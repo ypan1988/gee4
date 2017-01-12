@@ -61,8 +61,8 @@ getGEER <- function(object, name, sub.num) UseMethod("getGEER")
 #' Mean Covariance Model
 #' @export
 getGEER.geerMod <- function(object,
-  name = c("m", "Y", "X", "Z", "W", "D", "T", "Sigma", "mu",
-    "theta", "beta", "lambda", "gamma", "alpha", "loglik", "BIC", "iter",
+  name = c("m", "Y", "X", "Z", "W", "D", "T", "Sigma", "mu", "FIM",
+    "theta", "sd", "beta", "lambda", "gamma", "alpha", "loglik", "BIC", "iter",
     "triple"),
   sub.num = 0)
 {
@@ -98,7 +98,9 @@ getGEER.geerMod <- function(object,
       "X" = args$X,
       "Z" = args$Z,
       "W" = args$W,
+      "FIM" = obj$get_fim(theta),
       "theta"  = drop(opt$par),
+      "sd" = sqrt(diag(solve(obj$get_fim(theta)))), 
       "beta"   = drop(opt$beta),
       "lambda" = drop(opt$lambda),
       "gamma"  = drop(opt$gamma),
@@ -547,8 +549,8 @@ bootcurve <- function(object, nboot)
 
     control <- geerControl()
 
-    opt <- optimizeGeer(m.boot, Y.boot, X.boot, Z.boot, W.boot,
-      corr.struct = corr.struct, rho = rho, control = control, start = theta)
+    opt <- optimizeGeer(m.boot, Y.boot, X.boot, Z.boot, W.boot, time, method = 'gee-mcd',
+      corr.struct = corr.struct, rho = rho, ipw.order=1, control = control, start = theta)
 
     result <- rbind(result, drop(opt$par))
     cat("iter ", iter, ": ", format(round(result[iter, ], 4), nsmall=4), "\n")

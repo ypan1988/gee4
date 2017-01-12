@@ -133,6 +133,7 @@ namespace gee {
     arma::mat get_Sigma_inv(const arma::uword i) const;
     arma::mat get_weights_sqrt(const arma::uword i) const;
 
+    arma::mat get_fim() const; // get the fisher information matrix
     
     bool learn(const arma::uvec &m, const arma::mat &Y, const arma::mat &X,
                const arma::mat &Z, const arma::mat &W,
@@ -380,7 +381,99 @@ namespace gee {
     }
     return result;
   }
-  
+
+  inline arma::mat gee_jmcm::get_fim() const {
+    arma::uword n_sub = m_.n_elem;
+    arma::uword n_bta = X_.n_cols;
+    arma::uword n_lmd = Z_.n_cols;
+    arma::uword n_gma = W_.n_cols;
+    arma::uword n_tht = n_bta + n_lmd + n_gma;
+
+    arma::mat fim     = arma::zeros<arma::mat>(n_tht, n_tht);
+    arma::mat fim_bta = arma::zeros<arma::mat>(n_bta, n_bta);
+    arma::mat fim_lmd = arma::zeros<arma::mat>(n_lmd, n_lmd);
+    arma::mat fim_gma = arma::zeros<arma::mat>(n_gma, n_gma);
+    for (arma::uword i = 0; i != n_sub; ++i) {
+
+      // Compute fisher information matrix(beta)
+      // arma::vec ri = get_Resid(i);
+      arma::mat Sigmai_inv = get_Sigma_inv(i);
+      if (use_ipw_) {
+	arma::mat H_sqrt = get_weights_sqrt(i);
+	Sigmai_inv = H_sqrt * Sigmai_inv * H_sqrt;
+      }
+      
+      arma::mat deriv1;
+      // arma::vec yi_tilde;
+      if (link_mode_ == identity_link) {
+        deriv1 = get_X(i).t();
+        // yi_tilde = get_Y(i);
+      }
+      fim_bta += deriv1 * Sigmai_inv * deriv1.t();
+
+      // Compute fisher information matrix(lambda)
+      arma::uword mi = m_(i);
+      arma::vec ri = get_Resid(i);
+      arma::mat Ti = get_T(i);
+      arma::mat Di = get_D(i);
+      arma::vec di = Di.diag();
+      arma::vec di2 = arma::pow(Di.diag(), 1);
+      arma::vec logdi2 = arma::log(arma::pow(Di.diag(), 1));
+      arma::mat Di_inv = arma::diagmat(arma::pow(Di.diag(), -1));
+    
+      arma::mat Ai_sqrt_inv = 1 / arma::datum::sqrt2 * Di_inv;
+      arma::mat Ri_inv;
+    
+      if (corr_mode_ == Identity_corr) Ri_inv = arma::eye(mi, mi);
+      else if (corr_mode_ == CompSymm_corr) Ri_inv = dragonwell::corr_cs(rho_, mi).i();
+      else if (corr_mode_ == AR1_corr) Ri_inv = dragonwell::corr_ar1(rho_, mi).i();
+    
+      arma::mat cov_inv = Ai_sqrt_inv * Ri_inv * Ai_sqrt_inv;
+      if (use_ipw_) {
+	arma::mat H_sqrt = get_weights_sqrt(i);
+	cov_inv = H_sqrt * cov_inv * H_sqrt;
+      }
+
+      arma::mat deriv2 = get_Z(i).t();
+      for (arma::uword t = 1; t <= mi; ++t) {
+        deriv2.col(t - 1) *= arma::as_scalar(di(t - 1));
+      }
+    
+      arma::vec epsi2 = arma::pow(Ti * ri, 2);
+      arma::vec epsi2_tilde = epsi2 - di2 + Di * logdi2;
+    
+      fim_lmd += deriv2 * cov_inv * deriv2.t();
+
+      // Compute fisher information matrix(gamma)
+      //arma::uword mi = m_(i);
+      arma::mat Wi = get_W(i);
+      //arma::vec ri = get_Resid(i);
+      //arma::mat Di = get_D(i);
+      //arma::mat Di_inv = arma::diagmat(arma::pow(Di.diag(), -1));
+      if (use_ipw_) {
+	arma::mat H_sqrt = get_weights_sqrt(i);
+	Di_inv = H_sqrt * Di_inv * H_sqrt;
+      }
+
+      arma::uword rindex = 0;
+      
+      arma::mat deriv3 = arma::zeros<arma::mat>(n_gma, mi);
+      for (arma::uword j = 2; j <= mi; ++j) {
+        for (arma::uword k = 1; k <= (j - 1); ++k) {
+          deriv3.col(j - 1) += ri(k - 1) * Wi.row(rindex).t();
+          ++rindex;
+        }
+      }
+      
+      fim_gma += deriv3 * Di_inv * deriv3.t();
+    }
+
+    fim.submat(0, 0, n_bta-1, n_bta-1) = fim_bta;
+    fim.submat(n_bta, n_bta, n_bta+n_lmd-1, n_bta+n_lmd-1) = fim_lmd;
+    fim.submat(n_bta+n_lmd, n_bta+n_lmd, n_bta+n_lmd+n_gma-1, n_bta+n_lmd+n_gma-1) = fim_gma;
+    
+    return fim;
+  }
 }  // namespace gee4
 
 #endif  // GEE_JMCM_H_

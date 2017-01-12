@@ -463,3 +463,13 @@ RcppExport SEXP gee_jmcm__get_Sigma(SEXP xp, SEXP x_, SEXP i_) {
   
   return Rcpp::wrap(ptr->get_Sigma(i));
 }
+
+RcppExport SEXP gee_jmcm__get_fim(SEXP xp, SEXP x_) {
+  Rcpp::XPtr<gee::gee_jmcm> ptr(xp);
+  
+  arma::vec x = Rcpp::as<arma::vec>(x_);
+  
+  ptr->UpdateGEES(x);
+  
+  return Rcpp::wrap(ptr->get_fim());
+}
