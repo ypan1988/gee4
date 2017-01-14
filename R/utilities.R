@@ -198,7 +198,13 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
   for(i in 0:(lbta-1)) X.ts    <- cbind(X.ts, ts^i)
   
   Yest <- drop(X.ts %*% beta)
-  # plot(ts, Yest, type = "l", xlab = "Time", ylab = "Response")
+  
+  # ylim.max <- max(Yest)
+  # ylim.min <- min(Yest)
+  # ylim.diff <- ylim.max - ylim.min
+  # plot(ts, Yest, type = "l",
+  #      ylim = c(ylim.min-0.5*ylim.diff, ylim.max+0.5*ylim.diff),
+  #      xlab = "Time", ylab = "Response")
   plot(ts, Yest, type = "l", ylim = c(min(Y), max(Y)), xlab = "Time", ylab = "Response")
   # plot(time, Y, xlab = "Time", ylab = "Response")
   # lines(ts, Yest)

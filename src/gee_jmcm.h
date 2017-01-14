@@ -372,12 +372,14 @@ namespace gee {
       if (debug) Rcpp::Rcout << "i = " << i << std::endl;
       arma::vec Hi = H_.subvec(0, m_(0) - 1);
       result = arma::diagmat(arma::sqrt(Hi));
+      //result = arma::diagmat(Hi);
       if (debug) result.print("result = ");
     } else {
       if (debug) Rcpp::Rcout << "i = " << i << std::endl;
       arma::uword vindex = arma::sum(m_.subvec(0, i - 1));
       arma::vec Hi = H_.subvec(vindex, vindex + m_(i) - 1);
       result = arma::diagmat(arma::sqrt(Hi));
+      //result = arma::diagmat(Hi);
       if (debug) result.print("result = ");
     }
     return result;
