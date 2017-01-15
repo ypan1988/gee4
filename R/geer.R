@@ -112,7 +112,7 @@ NULL
 geer <- function(formula, data = NULL, triple = c(3, 3, 3), 
                  method = c('gee-mcd', 'wgee-mcd'), 
                  corr.struct = c('id', 'cs', 'ar1'), rho = 0.5, 
-                 ipw.order = 1,
+                 ipw.order = 1, weights.vec = NULL,
                  control = geerControl(), start = NULL)
 {
   mc <- mcout <- match.call()
@@ -126,7 +126,7 @@ geer <- function(formula, data = NULL, triple = c(3, 3, 3),
   if (missing(method)) method = 'gee-mcd'
 
   if (method != 'gee-mcd' && method != 'wgee-mcd')
-    stop("unknown method, choose from 'gee', 'gee-mcd' and 'wgee-mcd'")
+    stop("unknown method, choose from 'gee-mcd' and 'wgee-mcd'")
   
   missCtrl <- missing(control)
   if (!missCtrl && !inherits(control, "geerControl"))
@@ -144,6 +144,8 @@ geer <- function(formula, data = NULL, triple = c(3, 3, 3),
   opt <- do.call(optimizeGeer,
     c(args, method, corr.struct, rho, ipw.order, list(control=control, start=start)))
 
+  args$H <- opt$H
+  
   mkGeerMod(opt=opt, args=args, triple=triple, rho = rho, corr.struct=corr.struct, mc=mcout)
 }
 
@@ -188,7 +190,7 @@ NULL
 ldFormula <- function(formula, data = NULL, triple = c(3,3,3),
                       method = c('gee-mcd', 'wgee-mcd'),
                       corr.struct = c('id','cs','ar1'), rho = 0.5,
-                      ipw.order = 1,
+                      ipw.order = 1, weights.vec = NULL,
                       control = geerControl(), start = NULL)
 {
   mf <- mc <- match.call()
@@ -252,12 +254,19 @@ ldFormula <- function(formula, data = NULL, triple = c(3,3,3),
   d <- triple[2]
   q <- triple[3]
 
-  list(m = m, Y = Y, X = X, Z = Z, W = W, time = time)
+  if (!control$use.weights.vec) {
+    H <- rep(1, length(Y))
+  } else {
+    if (length(weights.vec) != length(Y)) stop("incorrect dimension for the weights vector")
+    H <- weights.vec
+  }
+  
+  list(m = m, Y = Y, X = X, Z = Z, W = W, H = H, time = time)
 }
 
 #' @rdname modular
 #' @export
-optimizeGeer <- function(m, Y, X, Z, W, time, method, corr.struct, rho, ipw.order, control, start)
+optimizeGeer <- function(m, Y, X, Z, W, H, time, method, corr.struct, rho, ipw.order, control, start)
 {
   missStart <- is.null(start)
 
@@ -279,16 +288,16 @@ optimizeGeer <- function(m, Y, X, Z, W, time, method, corr.struct, rho, ipw.orde
     start <- c(bta0, lmd0, gma0)
   }
 
-  H <- rep(1, length(Y))
+  # H <- rep(1, length(Y))
   alpha <- rep(0, ipw.order+1)
-  if (method == 'wgee-mcd') {
+  if (method == 'wgee-mcd' && !(control$use.weights.vec)) {
     ipwest <- ipw_estimation(m, Y, ipw.order)
     H <- ipwest$weights
     alpha <- ipwest$alpha
   }
   est <- gees_estimation(m, Y, X, Z, W, H, method, corr.struct, rho, start, control$trace, control$profile, control$errorMsg)
 
-  est <- c(est, list(alpha = alpha))
+  est <- c(est, list(alpha = alpha, H = H))
   
   if (!(control$ignore.const.term)) {
     const.term = - sum(m) * 0.5 * log(2 * pi)

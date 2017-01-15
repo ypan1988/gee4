@@ -61,7 +61,7 @@ namespace gee {
     }
 
     arma::vec CalWeights(const arma::vec &alpha) {
-      int debug = 1;
+      int debug = 0;
       
       arma::uword nsub  = m_.n_elem;
       arma::uword index = 0;

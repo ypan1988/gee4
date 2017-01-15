@@ -61,7 +61,7 @@ getGEER <- function(object, name, sub.num) UseMethod("getGEER")
 #' Mean Covariance Model
 #' @export
 getGEER.geerMod <- function(object,
-  name = c("m", "Y", "X", "Z", "W", "D", "T", "Sigma", "mu", "FIM",
+  name = c("m", "Y", "X", "Z", "W", "H", "D", "T", "Sigma", "mu", "FIM",
     "theta", "sd", "beta", "lambda", "gamma", "alpha", "loglik", "BIC", "iter",
     "triple"),
   sub.num = 0)
@@ -83,6 +83,7 @@ getGEER.geerMod <- function(object,
   X = args$X
   Z = args$Z
   W = args$W
+  H = args$H
   theta  = drop(opt$par)
 
   if (devcomp$dims["ID"] == 1) corrStruct <- "id"
@@ -98,6 +99,7 @@ getGEER.geerMod <- function(object,
       "X" = args$X,
       "Z" = args$Z,
       "W" = args$W,
+      "H" = args$H,
       "FIM" = obj$get_fim(theta),
       "theta"  = drop(opt$par),
       "sd" = obj$get_sd(theta), 

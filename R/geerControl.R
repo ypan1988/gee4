@@ -22,8 +22,9 @@ namedList <- function(...) {
 #'
 #' @export geerControl
 geerControl <- function(trace = FALSE, profile = TRUE,
-                        ignore.const.term = TRUE, errorMsg = FALSE)
+                        ignore.const.term = TRUE, errorMsg = FALSE,
+                        use.weights.vec = FALSE)
 {
-    structure(namedList(trace, profile, ignore.const.term, errorMsg),
+    structure(namedList(trace, profile, ignore.const.term, errorMsg, use.weights.vec),
               class = "geerControl")
 }
