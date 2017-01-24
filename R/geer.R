@@ -288,16 +288,19 @@ optimizeGeer <- function(m, Y, X, Z, W, H, time, method, corr.struct, rho, ipw.o
     start <- c(bta0, lmd0, gma0)
   }
 
-  # H <- rep(1, length(Y))
   alpha <- rep(0, ipw.order+1)
+  pij   <- rep(0, length(Y))
+  cpij  <- rep(0, length(Y))
   if (method == 'wgee-mcd' && !(control$use.weights.vec)) {
     ipwest <- ipw_estimation(m, Y, ipw.order)
     H <- ipwest$weights
     alpha <- ipwest$alpha
+    pij <- ipwest$pij
+    cpij <- ipwest$cpij 
   }
   est <- gees_estimation(m, Y, X, Z, W, H, method, corr.struct, rho, start, control$trace, control$profile, control$errorMsg)
 
-  est <- c(est, list(alpha = alpha, H = H))
+  est <- c(est, list(alpha = alpha, H = H, pij = pij, cpij = cpij))
   
   if (!(control$ignore.const.term)) {
     const.term = - sum(m) * 0.5 * log(2 * pi)

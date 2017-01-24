@@ -8,7 +8,11 @@ namespace gee {
   class ipw {
   public:
   ipw(const arma::uvec &m, const arma::vec &Y, arma::uword order)
-    : m_(m), Y_(Y), order_(order) { }
+    : m_(m), Y_(Y), order_(order) {
+      arma::uword ntobs = Y_.n_elem;
+      p_ = arma::zeros<arma::vec>(ntobs);
+      Pi_ = arma::zeros<arma::vec>(ntobs);
+    }
 
     arma::vec get_Y(const arma::uword i) const {
       arma::vec Yi;
@@ -64,7 +68,7 @@ namespace gee {
       int debug = 0;
       
       arma::uword nsub  = m_.n_elem;
-      arma::uword index = 0;
+      arma::uword index = 0, pindex = 0, Piindex = 0;
       arma::vec result = arma::zeros<arma::vec>(Y_.n_elem);
       for (arma::uword i = 0; i != nsub; ++i) {
         arma::vec Pi_i = arma::zeros<arma::vec>(m_(i));
@@ -73,6 +77,8 @@ namespace gee {
 	    double p_ij = 1;
             Pi_i(0) = p_ij;
             result(index) = 1 / Pi_i(0);
+
+	    p_(pindex++) = p_ij;
           } else {
             arma::vec Z_ij = get_Z(i, j);            
             double tmp = arma::as_scalar(arma::exp(Z_ij.t() * alpha));
@@ -88,16 +94,27 @@ namespace gee {
 	    /* if (Pi_i(j) < 1e-7) Pi_i(j) = 1e-7;   */
 	    
             result(index) = 1 / Pi_i(j);
+
+	    p_(pindex++) = p_ij;
           }
         } // for loop j
+
+	Pi_.subvec(Piindex, Piindex + m_(i) - 1) = Pi_i;
+	Piindex += m_(i);
+	
       } // for loop i
       return result;
     } 
+
+    arma::vec get_p() const { return p_; }
+    arma::vec get_Pi() const { return Pi_; }
     
   private:
     arma::uvec m_;
     arma::vec Y_;
     arma::uword order_;
+
+    arma::vec p_, Pi_;
   };
 }
 

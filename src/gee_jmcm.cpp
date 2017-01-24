@@ -181,6 +181,7 @@ namespace gee {
       arma::mat cov_inv = Ai_sqrt_inv * Ri_inv * Ai_sqrt_inv;
       if (use_ipw_) {
 	arma::mat H_sqrt = get_weights_sqrt(i);
+	//H_sqrt = H_sqrt * H_sqrt * H_sqrt;
 	cov_inv = H_sqrt * cov_inv * H_sqrt;
       }
 
@@ -216,6 +217,7 @@ namespace gee {
       arma::mat Di_inv = arma::diagmat(arma::pow(Di.diag(), -1));
       if (use_ipw_) {
 	arma::mat H_sqrt = get_weights_sqrt(i);
+	//H_sqrt = H_sqrt * H_sqrt * H_sqrt;
 	Di_inv = H_sqrt * Di_inv * H_sqrt;
       }
 

@@ -63,7 +63,7 @@ getGEER <- function(object, name, sub.num) UseMethod("getGEER")
 getGEER.geerMod <- function(object,
   name = c("m", "Y", "X", "Z", "W", "H", "D", "T", "Sigma", "mu", "FIM",
     "theta", "sd", "beta", "lambda", "gamma", "alpha", "loglik", "BIC", "iter",
-    "triple"),
+    "triple", "pij", "cpij"),
   sub.num = 0)
 {
   if(missing(name)) stop("'name' must not be missing")
@@ -91,7 +91,7 @@ getGEER.geerMod <- function(object,
   else if (devcomp$dims["AR1"] == 1) corrStruct <- "ar1"
   
   obj <- new("gee_jmcm", m, Y, X, Z, W, corrStruct, rho)
-
+  
   if(sub.num == 0) {
     switch(name,
       "m" = args$m,
@@ -112,8 +112,12 @@ getGEER.geerMod <- function(object,
       "iter"   = opt$iter,
       "triple" = object$triple,
       "n2loglik" = obj$n2loglik(theta),
-      "grad"     = obj$grad(theta))
+      "grad"     = obj$grad(theta),
+      "pij"    = drop(opt$pij),
+      "cpij"    = drop(opt$cpij))
   } else {
+      if (sub.num == 1) vindex = 1
+      else vindex = sum(m[1:(sub.num-1)]) + 1
     switch(name,
       "m" = obj$get_m(sub.num),
       "Y" = obj$get_Y(sub.num),
@@ -123,7 +127,9 @@ getGEER.geerMod <- function(object,
       "D" = obj$get_D(theta, sub.num),
       "T" = obj$get_T(theta, sub.num),
       "Sigma" = obj$get_Sigma(theta, sub.num),
-      "mu" = obj$get_mu(theta, sub.num))
+      "mu"    = obj$get_mu(theta, sub.num),
+      "pij"   = drop(opt$pij)[vindex:(vindex+m[sub.num]-1)],
+      "cpij"  = drop(opt$cpij)[vindex:(vindex+m[sub.num]-1)])
   }
 }
 

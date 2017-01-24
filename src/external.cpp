@@ -23,6 +23,8 @@ Rcpp::List ipw_estimation(arma::uvec m, arma::vec Y, arma::uword order, bool tra
   //result.print("Weight = ");
   
   return Rcpp::List::create(Rcpp::Named("alpha") = x,
+			    Rcpp::Named("pij") = weights.get_p(),
+			    Rcpp::Named("cpij") = weights.get_Pi(),
                             Rcpp::Named("weights") = result);
 
 }
