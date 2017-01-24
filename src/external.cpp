@@ -485,3 +485,32 @@ RcppExport SEXP gee_jmcm__get_sd(SEXP xp, SEXP x_) {
   
   return Rcpp::wrap(ptr->get_sd());
 }
+
+RcppExport SEXP ipw__new(SEXP m_, SEXP Y_, SEXP order_) {  
+  arma::uvec m = Rcpp::as<arma::uvec>(m_);
+  arma::vec Y = Rcpp::as<arma::vec>(Y_);
+  arma::uword order = Rcpp::as<arma::uword>(order_);
+
+  Rcpp::XPtr<gee::ipw>
+    ptr(new gee::ipw(m, Y, order), true);
+
+  return ptr;
+}
+
+RcppExport SEXP ipw__get_p(SEXP xp, SEXP alpha_) {
+  Rcpp::XPtr<gee::ipw> ptr(xp);
+  
+  arma::vec alpha = Rcpp::as<arma::vec>(alpha_);
+  arma::vec weights = ptr->CalWeights(alpha);
+  
+  return Rcpp::wrap(ptr->get_p());
+}
+
+RcppExport SEXP ipw__get_Pi(SEXP xp, SEXP alpha_) {
+  Rcpp::XPtr<gee::ipw> ptr(xp);
+  
+  arma::vec alpha = Rcpp::as<arma::vec>(alpha_);
+  arma::vec weights = ptr->CalWeights(alpha);
+  
+  return Rcpp::wrap(ptr->get_Pi());
+}

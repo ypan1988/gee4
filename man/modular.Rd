@@ -9,10 +9,11 @@
 \usage{
 ldFormula(formula, data = NULL, triple = c(3, 3, 3), method = c("gee-mcd",
   "wgee-mcd"), corr.struct = c("id", "cs", "ar1"), rho = 0.5,
-  ipw.order = 1, control = geerControl(), start = NULL)
+  ipw.order = 1, weights.vec = NULL, control = geerControl(),
+  start = NULL)
 
-optimizeGeer(m, Y, X, Z, W, time, method, corr.struct, rho, ipw.order, control,
-  start)
+optimizeGeer(m, Y, X, Z, W, H, time, method, corr.struct, rho, ipw.order,
+  control, start)
 
 mkGeerMod(opt, args, triple, rho, corr.struct, mc)
 }

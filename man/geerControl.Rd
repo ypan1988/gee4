@@ -5,7 +5,7 @@
 \title{Control of Joint Mean Covariance Model Fitting}
 \usage{
 geerControl(trace = FALSE, profile = TRUE, ignore.const.term = TRUE,
-  errorMsg = FALSE)
+  errorMsg = FALSE, use.weights.vec = FALSE)
 }
 \arguments{
 \item{trace}{whether or not the value of the objective function and the

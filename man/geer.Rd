@@ -6,7 +6,8 @@
 \usage{
 geer(formula, data = NULL, triple = c(3, 3, 3), method = c("gee-mcd",
   "wgee-mcd"), corr.struct = c("id", "cs", "ar1"), rho = 0.5,
-  ipw.order = 1, control = geerControl(), start = NULL)
+  ipw.order = 1, weights.vec = NULL, control = geerControl(),
+  start = NULL)
 }
 \arguments{
 \item{formula}{a two-sided linear formula object describing the covariates

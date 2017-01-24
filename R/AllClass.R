@@ -52,6 +52,32 @@ setMethod("initialize", "gee_jmcm", function(.Object, ...) {
   .Object
 })
 
+#' Class ipw
+#'
+#' Class \code{ipw} defines.
+#'
+#' @name ipw-class
+#'
+#' @exportClass ipw
+setClass("ipw", representation(pointer="externalptr"))
+
+ipw_method <- function(name) {
+  paste("ipw", name, sep = "__")
+}
+
+#' Extract parts of ipw.
+#'
+#' @param x an object of ipw class
+#' @param name member function of ipw class
+setMethod("$", "ipw", function(x, name) {
+  ipwfun <- ipw_method(name)
+  function(...) .Call(ipwfun, x@pointer, ...)
+})
+
+setMethod("initialize", "ipw", function(.Object, ...) {
+  .Object@pointer <- .Call(ipw_method("new"), ...)
+  .Object
+})
 
 #' Class MCD
 #'
