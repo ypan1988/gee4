@@ -21,7 +21,7 @@ Rcpp::List ipw_estimation(arma::uvec m, arma::vec Y, arma::uword order, bool tra
   newt.Optimize(x, 1.0e-6, trace);
   arma::vec result = weights.CalWeights(x);
   //result.print("Weight = ");
-  
+
   return Rcpp::List::create(Rcpp::Named("alpha") = x,
 			    Rcpp::Named("pij") = weights.get_p(),
 			    Rcpp::Named("cpij") = weights.get_Pi(),
@@ -40,11 +40,11 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
   int debug_test = 0;
 
   if (debug) Rcpp::Rcout << "gees_estimation(): " << std::endl;
-  
+
   int n_bta = X.n_cols;
   int n_lmd = Z.n_cols;
   int n_gma = W.n_cols;
-   
+  
   if (debug) Rcpp::Rcout << "gees_estimation(): setting corr_mode..." << std::endl;
   gee_corr_mode corr_mode(0);
   if (corrStruct == "id") corr_mode.setid(1);

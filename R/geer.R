@@ -57,12 +57,12 @@ NULL
 #' PANSS Data
 #'
 #' The PANSS or the Positive and Negative Syndrome Scale is a medical scale used
-#' for measuring symptom severity of patients with schizophrenic
-#' conditions. panss contains data from a longitudinal study where 3 different
-#' treatments were considered. Patients were followed for 8 weeks and PANSS
-#' score was recorded on week 0, 1, 2, 4, 6 and 8. The lower PANSS score a
-#' patient has, the less symptoms. Data was extracted from a larger, and
-#' confidential, set of clinical trial data from a randomised clinical trial.
+#' for measuring symptom severity of patients with schizophrenic conditions.
+#' panss contains data from a longitudinal study where 3 different treatments
+#' were considered. Patients were followed for 8 weeks and PANSS score was
+#' recorded on week 0, 1, 2, 4, 6 and 8. The lower PANSS score a patient has,
+#' the less symptoms. Data was extracted from a larger, and confidential, set of
+#' clinical trial data from a randomised clinical trial.
 #'
 #' \itemize{
 #'   \item treat: a factor variable with 3 levels
@@ -79,47 +79,45 @@ NULL
 NULL
 
 
-#' @title Fit Joint Mean-Covariance Models
+#' @title Fit GEE-MCD and WGEE-MCD models
 #'
-#' @description Fit a joint mean-covariance model to longitudinal data within
-#' the within the framework of generalised estimating equations (GEE), via the
-#' Newton-Raphson method.
+#' @description Fit a modified Cholesky decomposition (MCD) based joint mean
+#'   covariance model to longitudinal data within the framework of (weighted)
+#'   generalised estimating equations (GEE/WGEE), via the Newton-Raphson method.
 #'
 #' @param formula a two-sided linear formula object describing the covariates
-#' for both the mean and covariance matrix part of the model, with the response,
-#' the corresponding subject id and measurement time on the left of a operator~,
-#' divided by vertical bars ("|").
+#'   for both the mean and covariance matrix part of the model, with the
+#'   response, the corresponding subject id and measurement time on the left of
+#'   a operator~, divided by vertical bars ("|").
 #' @param data a data frame containing the variables named in formula.
 #' @param triple an integer vector of length three containing the degrees of the
-#' three polynomial functions for the mean structure, the log innovation
-#' -variances and the autoregressive or moving average coefficients when 'mcd'
-#' or 'acd' is specified for cov.method. It refers to the degree for the mean
-#' structure, variances and angles when 'hpc' is specified for cov.method.
-#' @param corr.struct covariance structure modelling method,
-#' choose 'mcd' (Pourahmadi 1999), 'acd' (Chen and Dunson 2013, not available yet)
-#' or 'hpc' (Zhang et al. 2015, not available yet).
-#' @param rho a parameter used in the sandwich 'working' covariance structure.
+#'   three polynomial functions for the mean structure, the log innovation
+#'   -variances and the autoregressive coefficients.
+#' @param method choose 'gee-mcd' (Ye and Pan, 2006) or 'wgee-mcd' (Pan et al.
+#'   2012).
+#' @param corr.struct choose 'id' (independent), 'cs' (compound symmetry) or
+#'   'ar1' (AR(1)).
+#' @param rho a parameter used in the 'working' covariance structure.
+#' @param ipw.order the order for MAR remaining model.
 #' @param control a list (of correct class, resulting from geerControl())
-#' containing control parameters, see the *geerControl documentation for
-#' details.
+#'   containing control parameters, see the *geerControl documentation for
+#'   details.
 #' @param start starting values for the parameters in the model.
 #'
-#' @examples
-#' cattleA <- cattle[cattle$group=='A', ]
-#' fit.mcd <- geer(weight | id | I(ceiling(day/14 + 1)) ~ 1 | 1,
-#' data=cattleA, triple = c(8, 2, 2), rho = 0.5, corr.struct = 'cs')
+#' @examples fitgee.normal <- geer(cd4 | id | time ~ 1 | 1, data = aids, triple
+#'   = c(6,3,3), method = 'gee-mcd', corr.struct = 'id', control =
+#'   geerControl(trace=T))
 #' @export
-geer <- function(formula, data = NULL, triple = c(3, 3, 3), 
-                 method = c('gee-mcd', 'wgee-mcd'), 
-                 corr.struct = c('id', 'cs', 'ar1'), rho = 0.5, 
-                 ipw.order = 1, weights.vec = NULL,
-                 control = geerControl(), start = NULL)
+geer <- function(formula, data = NULL, triple = c(3, 3, 3),
+                 method = c('gee-mcd', 'wgee-mcd'),
+                 corr.struct = c('id', 'cs', 'ar1'), rho = 0.5, ipw.order = 1,
+                 weights.vec = NULL, control = geerControl(), start = NULL)
 {
   mc <- mcout <- match.call()
 
   if (missing(corr.struct))
     stop("corr.struct must be specified")
-  
+
   if (corr.struct != 'id' && corr.struct != 'cs' && corr.struct != 'ar1')
     stop("unknown corr.struct, choose from 'id', 'cs' and 'ar1'")
 
@@ -127,7 +125,7 @@ geer <- function(formula, data = NULL, triple = c(3, 3, 3),
 
   if (method != 'gee-mcd' && method != 'wgee-mcd')
     stop("unknown method, choose from 'gee-mcd' and 'wgee-mcd'")
-  
+
   missCtrl <- missing(control)
   if (!missCtrl && !inherits(control, "geerControl"))
   {
@@ -145,11 +143,11 @@ geer <- function(formula, data = NULL, triple = c(3, 3, 3),
     c(args, method, corr.struct, rho, ipw.order, list(control=control, start=start)))
 
   args$H <- opt$H
-  
+
   mkGeerMod(opt=opt, args=args, triple=triple, rho = rho, corr.struct=corr.struct, mc=mcout)
 }
 
-#' @title Modular Functions for Joint Mean Covariance Model Fits
+#' @title Modular Functions for GEE-MCD and WGEE-MCD Fits
 #'
 #' @description Modular Functions for joint mean covariance model fits
 #'
@@ -434,39 +432,3 @@ summary.geerMod <- function(x, digits=4, ...)
 
   invisible(x)
 }
-
-# bdbind <- function(A, B)
-# {
-#   stopifnot(isSymmetric(A))
-#   stopifnot(isSymmetric(B))
-#   dimA <- dim(A)[1]
-#   dimB <- dim(B)[1]
-#
-#   res <- matrix(0, dimA+dimB, dimA+dimB)
-#   res[1:dimA, 1:dimA] = A
-#   res[(dimA+1):(dimA+dimB), (dimA+1):(dimA+dimB)] = B
-#   res
-# }
-#
-# vcov.merMod <- function(object)
-# {
-#   args <- object@args
-#   dims <- object@devcomp$dims
-#   par  <- object@opt$par
-#
-#   m <- args[["m"]]
-#   Y <- args[["Y"]]
-#   X <- args[["X"]]
-#   Z <- args[["Z"]]
-#   W <- args[["W"]]
-#
-#   if(dims[["MCD"]] == 1) {
-#     mcdobj <-  new("MCD", m, Y, X, Z, W)
-#     res <- solve(mcdobj$meancovi(par, 1)$Sigmai)
-#     for(i in 2:length(m)) {
-#       res <- bdbind(res, solve(mcdobj$meancovi(par, i)$Sigmai))
-#     }
-#   }
-#   res <- solve(t(X) %*% res %*% X)
-# }
-
