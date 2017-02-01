@@ -30,7 +30,7 @@ namespace gee {
       arma::vec Yi = get_Y(i);
       arma::vec Z_ij = arma::zeros<arma::vec>(order_+1);
       if ((j+1) <= order_) {
-	Z_ij(0) = 1;
+        Z_ij(0) = 1;
       }
       else {
         Z_ij(0) = 1;
@@ -53,12 +53,12 @@ namespace gee {
           double p_ij =  tmp / (1 + tmp);
           result += 1 * (1 - p_ij) * Z_ij;
         }
-	if (m_(i) != max_obs) {
-	  arma::vec Z_ij = get_Z(i, m_(i));
-	  double tmp = arma::as_scalar(arma::exp(Z_ij.t() * alpha));
-	  double p_ij =  tmp / (1 + tmp);
-	  result += 1 * (0 - p_ij) * Z_ij;
-	}
+        if (m_(i) != max_obs) {
+          arma::vec Z_ij = get_Z(i, m_(i));
+          double tmp = arma::as_scalar(arma::exp(Z_ij.t() * alpha));
+          double p_ij =  tmp / (1 + tmp);
+          result += 1 * (0 - p_ij) * Z_ij;
+        }
       }
 
       return result;
@@ -74,33 +74,33 @@ namespace gee {
         arma::vec Pi_i = arma::zeros<arma::vec>(m_(i));
         for (arma::uword j = 0; j != m_(i); ++j, ++index) {
           if (j == 0) {
-	    double p_ij = 1;
+            double p_ij = 1;
             Pi_i(0) = p_ij;
             result(index) = 1 / Pi_i(0);
 
-	    p_(pindex++) = p_ij;
+            p_(pindex++) = p_ij;
           } else {
             arma::vec Z_ij = get_Z(i, j);            
             double tmp = arma::as_scalar(arma::exp(Z_ij.t() * alpha));
             double p_ij =  tmp / (1 + tmp);
-	    Pi_i(j) = Pi_i(j-1) * p_ij;
+            Pi_i(j) = Pi_i(j-1) * p_ij;
 
-	    if (debug && i == (nsub - 1)) {
-	      Rcpp::Rcout << "j = " << j+1 << std::endl;
-	      Rcpp::Rcout << "Pi_ij = " << Pi_i(j) << std::endl;
-	      Rcpp::Rcout << std::endl;
-	    }
+            if (debug && i == (nsub - 1)) {
+              Rcpp::Rcout << "j = " << j+1 << std::endl;
+              Rcpp::Rcout << "Pi_ij = " << Pi_i(j) << std::endl;
+              Rcpp::Rcout << std::endl;
+            }
 	    
-	    /* if (Pi_i(j) < 1e-7) Pi_i(j) = 1e-7;   */
+            /* if (Pi_i(j) < 1e-7) Pi_i(j) = 1e-7;   */
 	    
             result(index) = 1 / Pi_i(j);
 
-	    p_(pindex++) = p_ij;
+            p_(pindex++) = p_ij;
           }
         } // for loop j
 
-	Pi_.subvec(Piindex, Piindex + m_(i) - 1) = Pi_i;
-	Piindex += m_(i);
+        Pi_.subvec(Piindex, Piindex + m_(i) - 1) = Pi_i;
+        Piindex += m_(i);
 	
       } // for loop i
       return result;

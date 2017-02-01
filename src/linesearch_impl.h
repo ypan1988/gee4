@@ -1,20 +1,20 @@
 /* Copyright 2016 The University of Manchester.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Written by Yi Pan - ypan1988@gmail.com
-==============================================================================*/
+   Written by Yi Pan - ypan1988@gmail.com
+   ==============================================================================*/
 
 /**
  * Line Searches and backtracking
@@ -38,8 +38,8 @@ bool LineSearch<T>::GetStep(T &func, double *f, arma::vec *x,
   const int kIterMax = 200;      // Maximum number of iterations
   const double kAlpha = 1.0e-4;  // Ensure sufficient decrease in function value
   const double kTolX =
-      std::numeric_limits<double>::epsilon();  // The convergence criterion on
-                                               // Delta X
+    std::numeric_limits<double>::epsilon();  // The convergence criterion on
+  // Delta X
   const arma::uword n_param = (*x).n_rows;     // number of parameters
 
   // Scale if attempted step is too big
@@ -88,9 +88,9 @@ bool LineSearch<T>::GetStep(T &func, double *f, arma::vec *x,
         double rhs1 = *f - fold - lambda * slope;
         double rhs2 = f2 - fold - lambda2 * slope;
         double a = rhs1 / (lambda * lambda) / (lambda - lambda2) -
-                   rhs2 / (lambda2 * lambda2) / (lambda - lambda2);
+          rhs2 / (lambda2 * lambda2) / (lambda - lambda2);
         double b = -lambda2 * rhs1 / (lambda * lambda) / (lambda - lambda2) +
-                   lambda * rhs2 / (lambda2 * lambda2) / (lambda - lambda2);
+          lambda * rhs2 / (lambda2 * lambda2) / (lambda - lambda2);
         if (IsInfOrNaN(a) || IsInfOrNaN(b)) {
           lambda_tmp = 0.5 * lambda;
         } else if (a == 0.0) {

@@ -22,8 +22,8 @@ Rcpp::List ipw_estimation(arma::uvec m, arma::vec Y, arma::uword order, bool tra
   //result.print("Weight = ");
 
   return Rcpp::List::create(Rcpp::Named("alpha") = x,
-			    Rcpp::Named("pij") = weights.get_p(),
-			    Rcpp::Named("cpij") = weights.get_Pi(),
+                            Rcpp::Named("pij") = weights.get_p(),
+                            Rcpp::Named("cpij") = weights.get_Pi(),
                             Rcpp::Named("weights") = result);
 
 }
@@ -31,7 +31,7 @@ Rcpp::List ipw_estimation(arma::uvec m, arma::vec Y, arma::uword order, bool tra
 
 // [[Rcpp::export]]
 Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, arma::mat W,
-			   arma::vec H,
+                           arma::vec H,
                            std::string method, std::string corrStruct, double rho, arma::vec start,
                            bool trace = false, bool profile = true, bool errorMsg = false)
 {
@@ -363,7 +363,7 @@ Rcpp::List geerfit_ar1(arma::uvec m,
 }
 
 RcppExport SEXP gee_jmcm__new(SEXP m_, SEXP Y_, SEXP X_, SEXP Z_, SEXP W_,
-			 SEXP corrStruct_, SEXP rho_) {  
+                              SEXP corrStruct_, SEXP rho_) {  
   arma::uvec m = Rcpp::as<arma::uvec>(m_);
   arma::vec Y = Rcpp::as<arma::vec>(Y_);
   arma::mat X = Rcpp::as<arma::mat>(X_);

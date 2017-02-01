@@ -402,8 +402,8 @@ namespace gee {
       // arma::vec ri = get_Resid(i);
       arma::mat Sigmai_inv = get_Sigma_inv(i);
       if (use_ipw_) {
-	arma::mat H_sqrt = get_weights_sqrt(i);
-	Sigmai_inv = H_sqrt * Sigmai_inv * H_sqrt;
+        arma::mat H_sqrt = get_weights_sqrt(i);
+        Sigmai_inv = H_sqrt * Sigmai_inv * H_sqrt;
       }
       
       arma::mat deriv1;
@@ -433,8 +433,8 @@ namespace gee {
     
       arma::mat cov_inv = Ai_sqrt_inv * Ri_inv * Ai_sqrt_inv;
       if (use_ipw_) {
-	arma::mat H_sqrt = get_weights_sqrt(i);
-	cov_inv = H_sqrt * cov_inv * H_sqrt;
+        arma::mat H_sqrt = get_weights_sqrt(i);
+        cov_inv = H_sqrt * cov_inv * H_sqrt;
       }
 
       arma::mat deriv2 = get_Z(i).t();
@@ -454,8 +454,8 @@ namespace gee {
       //arma::mat Di = get_D(i);
       //arma::mat Di_inv = arma::diagmat(arma::pow(Di.diag(), -1));
       if (use_ipw_) {
-	arma::mat H_sqrt = get_weights_sqrt(i);
-	Di_inv = H_sqrt * Di_inv * H_sqrt;
+        arma::mat H_sqrt = get_weights_sqrt(i);
+        Di_inv = H_sqrt * Di_inv * H_sqrt;
       }
 
       arma::uword rindex = 0;
@@ -487,7 +487,7 @@ namespace gee {
     arma::mat fim_bta = fim.submat(0, 0, n_bta-1, n_bta-1);
     arma::mat fim_lmd = fim.submat(n_bta, n_bta, n_bta+n_lmd-1, n_bta+n_lmd-1);
     arma::mat fim_gma = fim.submat(n_bta+n_lmd, n_bta+n_lmd,
-				   n_bta+n_lmd+n_gma-1, n_bta+n_lmd+n_gma-1);
+                                   n_bta+n_lmd+n_gma-1, n_bta+n_lmd+n_gma-1);
 
     arma::vec bta_sd = arma::sqrt(arma::diagvec(fim_bta.i()));
     arma::vec lmd_sd = arma::sqrt(arma::diagvec(fim_lmd.i()));
