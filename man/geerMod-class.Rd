@@ -3,9 +3,9 @@
 \docType{class}
 \name{geerMod-class}
 \alias{geerMod-class}
-\title{Class "geerMod" of Fitted Joint Mean-Covariance Models.}
+\title{Class "geerMod" of Fitted GEE-MCD/WGEE-MCD  Models.}
 \description{
-Class "geerMod" of Fitted Joint Mean-Covariance Models.
+Class "geerMod" of Fitted GEE-MCD/WGEE-MCD  Models.
 }
 \section{Slots}{
 
@@ -14,14 +14,14 @@ Class "geerMod" of Fitted Joint Mean-Covariance Models.
 
 \item{\code{opt}}{the optimization result returned by optimizeGeer}
 
-\item{\code{args}}{arguments m, Y, X, Z, W, time}
+\item{\code{args}}{arguments m, Y, X, Z, W, H, time}
 
 \item{\code{triple}}{an integer vector of length three containing the degrees of the
 three polynomial functions for the mean structure, the log innovation
--variances and the autoregressive or moving average coefficients when
-'mcd' or 'acd' is specified for cov.method. It refers to the mean structure,
-variances and angles when 'hpc' is specified for cov.method.}
+-variances and the autoregressive coefficients.}
 
-\item{\code{devcomp}}{the deviance components list}
+\item{\code{rho}}{a parameter used in the 'working' covariance structure.}
+
+\item{\code{devcomp}}{the deviance components list.}
 }}
 

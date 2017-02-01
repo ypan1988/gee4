@@ -8,7 +8,7 @@
 \S4method{show}{geerMod}(object)
 }
 \arguments{
-\item{object}{a fitted joint mean covariance model of class "geerMod", i.e.,
+\item{object}{a fitted GEE-MCD/WGEE-MCD model of class "geerMod", i.e.,
 typically the result of geer().}
 }
 \description{

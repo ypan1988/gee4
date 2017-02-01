@@ -20,9 +20,10 @@ using bootstrapping method.
 \examples{
 \dontrun{
 # It may take hours for large bootstrap replications
-fit.mcd <- geer(I(sqrt(cd4)) | id | time ~ 1 | 1, data=aids,
-  triple = c(8, 1, 3), cov.method = 'mcd', control = geerControl(trace=T))
-bootcurve(fit.mcd, nboot = 1000)
+fitgee.ar1 <- geer(cd4|id|time ~ 1|1, data = aids, triple = c(6,3,3),
+method = 'gee-mcd', corr.struct = 'ar1', rho = 0.5,
+control = geerControl(trace=TRUE))
+bootcurve(fitgee.ar1, nboot = 1000)
 }
 
 }

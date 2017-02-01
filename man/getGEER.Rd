@@ -3,8 +3,8 @@
 \name{getGEER}
 \alias{getGEER}
 \alias{getGEER.geerMod}
-\title{Extract or Get Generalized Components from a Fitted Joint Mean
-Covariance Model}
+\title{Extract or Get Generalized Components from a Fitted GEE-MCD/WGEE-MCD
+  Model}
 \usage{
 getGEER(object, name, sub.num)
 
@@ -25,18 +25,24 @@ When sub.num is not specified or equal to 0, possible values are:
   \item{\code{"X"}}{model matrix for mean structure}
   \item{\code{"Z"}}{model matrix for covariance structure (the diagonal
   matrix)}
-  \item{\code{"W"}}{model matrix for covariance structure (the lower
-  triangular matrix)}
-  \item{\code{"theta"}}{parameter estimates of joint mean covariance model}
+  \item{\code{"W"}}{model matrix for covariance structure (the lower triangular
+  matrix)}
+  \item{\code{"H"}}{a vector of weights used in WGEE-MCD}
+  \item{\code{"FIM"}}{Fisher Information matrix}
+  \item{\code{"theta"}}{parameter estimates of GEE-MCD/WGEE-MCD model}
+  \item{\code{"sd"}}{standard deviations for parameter estimates of
+  GEE-MCD/WGEE-MCD model}
   \item{\code{"beta"}}{parameter estimates for mean structure model}
   \item{\code{"lambda"}}{parameter estimates for covariace structure (the
   diagonal matrix)}
-  \item{\code{"gamma"}}{parameter estimates for covariance structure (the
-  lower triangular matrix)}
-  \item{\code{"loglik"}}{log-likelihood, except for a constant}
-  \item{\code{"BIC"}}{Bayesian information criterion}
+  \item{\code{"gamma"}}{parameter estimates for covariance structure (the lower
+  triangular matrix)}
+  \item{\code{"quasilik"}}{quasi-likelihood}
+  \item{\code{"QIC"}}{Quasi information criterion}
   \item{\code{"iter"}}{number of iterations until convergence}
   \item{\code{"triple"}}{(p, d, q)}
+  \item{\code{"pij"}}{a vector of remaining probability}
+  \item{\code{"cpij"}}{a vector of cumulative remaining probability}
 }
 
 When sub.num is specified, possible values are:
@@ -52,26 +58,29 @@ When sub.num is specified, possible values are:
   \item{\code{"T"}}{the estimated lower triangular matrix for subject i}
   \item{\code{"Sigma"}}{the estimated covariance matrix for subject i}
   \item{\code{"mu"}}{the estimated mean for subject i}
+  \item{\code{"pij"}}{a vector of remaining probability for subject i}
+  \item{\code{"cpij"}}{a vector of cumulative remaining probability for subject i}
 }}
 
 \item{sub.num}{refer to i's subject}
 }
 \description{
-Extract (or "get") "components" - in a generalized sense - from
-a fitted joint mean covariance model from an object of class "geerMod".
+Extract (or get) "components" - in a generalized sense - from a
+  fitted joint mean covariance model from an object of class "geerMod".
 }
 \section{Methods (by class)}{
 \itemize{
 \item \code{geerMod}: Extract or Get Generalized Components from a Fitted Joint
-Mean Covariance Model
+GEE-MCD/WGEE-MCD Model
 }}
 \examples{
-fit.mcd <- geer(I(sqrt(cd4)) | id | time ~ 1 | 1, data = aids,
-  triple = c(8, 1, 3), cov.method = 'mcd')
+fitgee.ar1 <- geer(cd4|id|time ~ 1|1, data = aids, triple =
+  c(6,3,3), method = 'gee-mcd', corr.struct = 'ar1', rho = 0.5, control =
+  geerControl(trace=TRUE))
 
-beta <- getGEER(fit.mcd, "beta")
-BIC  <- getGEER(fit.mcd, "BIC")
-Di   <- getGEER(fit.mcd, "D", 10)
+sd  <- getGEER(fitgee.ar1, "sd")
+QIC <- getGEER(fitgee.ar1, "QIC")
+Di  <- getGEER(fitgee.ar1, "D", 10)
 
 }
 

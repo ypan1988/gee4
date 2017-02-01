@@ -2,7 +2,7 @@
 % Please edit documentation in R/geerControl.R
 \name{geerControl}
 \alias{geerControl}
-\title{Control of Joint Mean Covariance Model Fitting}
+\title{Control of GEE-MCD/WGEE-MCD Model Fitting}
 \usage{
 geerControl(trace = FALSE, profile = TRUE, ignore.const.term = TRUE,
   errorMsg = FALSE, use.weights.vec = FALSE)
@@ -14,14 +14,16 @@ parameters should be print on every trace'th iteration.}
 \item{profile}{whether or not parameters should be estimated sequentially
 using the idea of profile likelihood.}
 
-\item{ignore.const.term}{whether or not the constant term should be considered
-when calculating log-likelihood and BIC.
-function}
+\item{ignore.const.term}{whether or not the constant term should be
+considered when calculating quasi-likelihood and QIC.}
 
-\item{errorMsg}{whether or not the error message should be print}
+\item{errorMsg}{whether or not the error message should be print.}
+
+\item{use.weights.vec}{whether or not a user-specified weights.vec should be
+used}
 }
 \description{
-Construct control structures for joint mean covariance model
+Construct control structures for GEE-MCD/WGEE-MCD model
 fitting
 }
 

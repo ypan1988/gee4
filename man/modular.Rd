@@ -5,7 +5,7 @@
 \alias{mkGeerMod}
 \alias{modular}
 \alias{optimizeGeer}
-\title{Modular Functions for Joint Mean Covariance Model Fits}
+\title{Modular Functions for GEE-MCD and WGEE-MCD Fits}
 \usage{
 ldFormula(formula, data = NULL, triple = c(3, 3, 3), method = c("gee-mcd",
   "wgee-mcd"), corr.struct = c("id", "cs", "ar1"), rho = 0.5,
@@ -19,23 +19,27 @@ mkGeerMod(opt, args, triple, rho, corr.struct, mc)
 }
 \arguments{
 \item{formula}{a two-sided linear formula object describing the covariates
-for both the mean and covariance matrix part of the model, with the response,
-the corresponding subject id and measurement time on the left of a operator~,
-divided by vertical bars ("|").}
+for both the mean and covariance matrix part of the model, with the
+response, the corresponding subject id and measurement time on the left of
+a operator~, divided by vertical bars ("|").}
 
 \item{data}{a data frame containing the variables named in formula.}
 
 \item{triple}{an integer vector of length three containing the degrees of the
 three polynomial functions for the mean structure, the log innovation
--variances and the autoregressive or moving average coefficients when 'mcd'
-or 'acd' is specified for cov.method. It refers to the degree for the mean
-structure, variances and angles when 'hpc' is specified for cov.method.}
+-variances and the autoregressive coefficients.}
 
-\item{corr.struct}{covariance structure modelling method,
-choose 'mcd' (Pourahmadi 1999), 'acd' (Chen and Dunson 2013) or 'hpc'
-(Zhang et al. 2015).}
+\item{method}{choose 'gee-mcd' (Ye and Pan, 2006) or 'wgee-mcd' (Pan et al.
+2012).}
 
-\item{rho}{a parameter used in the sandwich 'working' covariance structure}
+\item{corr.struct}{choose 'id' (independent), 'cs' (compound symmetry) or
+'ar1' (AR(1)).}
+
+\item{rho}{a parameter used in the 'working' covariance structure.}
+
+\item{ipw.order}{the order for MAR remaining model.}
+
+\item{weights.vec}{a user specified vector for the weights H in WGEE-MCD.}
 
 \item{control}{a list (of correct class, resulting from geerControl())
 containing control parameters, see the *geerControl documentation for
@@ -53,6 +57,8 @@ details.}
 
 \item{W}{model matrix for the lower triangular matrix.}
 
+\item{H}{a vector of weights used in WGEE-MCD.}
+
 \item{time}{a vector of time from the data.}
 
 \item{opt}{optimized results returned by optimizeGeer.}
@@ -62,6 +68,7 @@ details.}
 \item{mc}{matched call from the calling function.}
 }
 \description{
-Modular Functions for joint mean covariance model fits
+Modular Functions for a modified Cholesky decomposition (MCD)
+  based (weighted) generalised estimating equations (GEE/WGEE) fits
 }
 

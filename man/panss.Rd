@@ -10,12 +10,12 @@ data(panss)
 }
 \description{
 The PANSS or the Positive and Negative Syndrome Scale is a medical scale used
-for measuring symptom severity of patients with schizophrenic
-conditions. panss contains data from a longitudinal study where 3 different
-treatments were considered. Patients were followed for 8 weeks and PANSS
-score was recorded on week 0, 1, 2, 4, 6 and 8. The lower PANSS score a
-patient has, the less symptoms. Data was extracted from a larger, and
-confidential, set of clinical trial data from a randomised clinical trial.
+for measuring symptom severity of patients with schizophrenic conditions.
+panss contains data from a longitudinal study where 3 different treatments
+were considered. Patients were followed for 8 weeks and PANSS score was
+recorded on week 0, 1, 2, 4, 6 and 8. The lower PANSS score a patient has,
+the less symptoms. Data was extracted from a larger, and confidential, set of
+clinical trial data from a randomised clinical trial.
 }
 \details{
 \itemize{

@@ -5,7 +5,8 @@
 \alias{gee_jmcm-class}
 \title{Class gee_jmcm}
 \description{
-Class \code{gee_jmcm} defines a joint mean covariance model based on Modified
-Cholesky decomposition (MCD).
+Class \code{gee_jmcm} defines a Modified Cholesky decomposition (MCD) based
+joint mean covariance model within the framework of (weighted) generalised
+estimating equations.
 }
 

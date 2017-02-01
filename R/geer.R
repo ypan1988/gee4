@@ -99,6 +99,7 @@ NULL
 #'   'ar1' (AR(1)).
 #' @param rho a parameter used in the 'working' covariance structure.
 #' @param ipw.order the order for MAR remaining model.
+#' @param weights.vec a user specified vector for the weights H in WGEE-MCD.
 #' @param control a list (of correct class, resulting from geerControl())
 #'   containing control parameters, see the *geerControl documentation for
 #'   details.
@@ -106,7 +107,7 @@ NULL
 #'
 #' @examples fitgee.normal <- geer(cd4 | id | time ~ 1 | 1, data = aids, triple
 #'   = c(6,3,3), method = 'gee-mcd', corr.struct = 'id', control =
-#'   geerControl(trace=T))
+#'   geerControl(trace=TRUE))
 #' @export
 geer <- function(formula, data = NULL, triple = c(3, 3, 3),
                  method = c('gee-mcd', 'wgee-mcd'),
@@ -149,31 +150,34 @@ geer <- function(formula, data = NULL, triple = c(3, 3, 3),
 
 #' @title Modular Functions for GEE-MCD and WGEE-MCD Fits
 #'
-#' @description Modular Functions for joint mean covariance model fits
+#' @description Modular Functions for a modified Cholesky decomposition (MCD)
+#'   based (weighted) generalised estimating equations (GEE/WGEE) fits
 #'
 #' @param formula a two-sided linear formula object describing the covariates
-#' for both the mean and covariance matrix part of the model, with the response,
-#' the corresponding subject id and measurement time on the left of a operator~,
-#' divided by vertical bars ("|").
+#'   for both the mean and covariance matrix part of the model, with the
+#'   response, the corresponding subject id and measurement time on the left of
+#'   a operator~, divided by vertical bars ("|").
 #' @param data a data frame containing the variables named in formula.
 #' @param triple an integer vector of length three containing the degrees of the
-#' three polynomial functions for the mean structure, the log innovation
-#' -variances and the autoregressive or moving average coefficients when 'mcd'
-#' or 'acd' is specified for cov.method. It refers to the degree for the mean
-#' structure, variances and angles when 'hpc' is specified for cov.method.
-#' @param rho a parameter used in the sandwich 'working' covariance structure
-#' @param corr.struct covariance structure modelling method,
-#' choose 'mcd' (Pourahmadi 1999), 'acd' (Chen and Dunson 2013) or 'hpc'
-#' (Zhang et al. 2015).
+#'   three polynomial functions for the mean structure, the log innovation
+#'   -variances and the autoregressive coefficients.
+#' @param method choose 'gee-mcd' (Ye and Pan, 2006) or 'wgee-mcd' (Pan et al.
+#'   2012).
+#' @param corr.struct choose 'id' (independent), 'cs' (compound symmetry) or
+#'   'ar1' (AR(1)).
+#' @param rho a parameter used in the 'working' covariance structure.
+#' @param ipw.order the order for MAR remaining model.
+#' @param weights.vec a user specified vector for the weights H in WGEE-MCD.
 #' @param control a list (of correct class, resulting from geerControl())
-#' containing control parameters, see the *geerControl documentation for
-#' details.
+#'   containing control parameters, see the *geerControl documentation for
+#'   details.
 #' @param start starting values for the parameters in the model.
 #' @param m an integer vector of number of measurements for each subject.
 #' @param Y a vector of responses for all subjects.
 #' @param X model matrix for mean structure model.
 #' @param Z model matrix for the diagonal matrix.
 #' @param W model matrix for the lower triangular matrix.
+#' @param H a vector of weights used in WGEE-MCD.
 #' @param time a vector of time from the data.
 #' @param opt optimized results returned by optimizeGeer.
 #' @param args arguments returned by ldFormula.
@@ -294,12 +298,12 @@ optimizeGeer <- function(m, Y, X, Z, W, H, time, method, corr.struct, rho, ipw.o
     H <- ipwest$weights
     alpha <- ipwest$alpha
     pij <- ipwest$pij
-    cpij <- ipwest$cpij 
+    cpij <- ipwest$cpij
   }
   est <- gees_estimation(m, Y, X, Z, W, H, method, corr.struct, rho, start, control$trace, control$profile, control$errorMsg)
 
   est <- c(est, list(alpha = alpha, H = H, pij = pij, cpij = cpij))
-  
+
   if (!(control$ignore.const.term)) {
     const.term = - sum(m) * 0.5 * log(2 * pi)
     est$quasilik = est$quasilik + const.term
@@ -396,7 +400,7 @@ print.geerMod <- function(x, digits=4, ...)
 
 #' Print information for geerMod-class
 #'
-#' @param object a fitted joint mean covariance model of class "geerMod", i.e.,
+#' @param object a fitted GEE-MCD/WGEE-MCD model of class "geerMod", i.e.,
 #' typically the result of geer().
 #'
 #' @exportMethod show

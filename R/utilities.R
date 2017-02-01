@@ -1,8 +1,8 @@
-#' @title Extract or Get Generalized Components from a Fitted Joint Mean
-#' Covariance Model
+#' @title Extract or Get Generalized Components from a Fitted GEE-MCD/WGEE-MCD
+#'   Model
 #'
-#' @description Extract (or "get") "components" - in a generalized sense - from
-#' a fitted joint mean covariance model from an object of class "geerMod".
+#' @description Extract (or get) "components" - in a generalized sense - from a
+#'   fitted joint mean covariance model from an object of class "geerMod".
 #'
 #' @param object a fitted joint mean covariance model of class "geerMod", i.e.,
 #' typically the result of geer().
@@ -15,18 +15,24 @@
 #'   \item{\code{"X"}}{model matrix for mean structure}
 #'   \item{\code{"Z"}}{model matrix for covariance structure (the diagonal
 #'   matrix)}
-#'   \item{\code{"W"}}{model matrix for covariance structure (the lower
-#'   triangular matrix)}
-#'   \item{\code{"theta"}}{parameter estimates of joint mean covariance model}
+#'   \item{\code{"W"}}{model matrix for covariance structure (the lower triangular
+#'   matrix)}
+#'   \item{\code{"H"}}{a vector of weights used in WGEE-MCD}
+#'   \item{\code{"FIM"}}{Fisher Information matrix}
+#'   \item{\code{"theta"}}{parameter estimates of GEE-MCD/WGEE-MCD model}
+#'   \item{\code{"sd"}}{standard deviations for parameter estimates of
+#'   GEE-MCD/WGEE-MCD model}
 #'   \item{\code{"beta"}}{parameter estimates for mean structure model}
 #'   \item{\code{"lambda"}}{parameter estimates for covariace structure (the
 #'   diagonal matrix)}
-#'   \item{\code{"gamma"}}{parameter estimates for covariance structure (the
-#'   lower triangular matrix)}
-#'   \item{\code{"loglik"}}{log-likelihood, except for a constant}
-#'   \item{\code{"BIC"}}{Bayesian information criterion}
+#'   \item{\code{"gamma"}}{parameter estimates for covariance structure (the lower
+#'   triangular matrix)}
+#'   \item{\code{"quasilik"}}{quasi-likelihood}
+#'   \item{\code{"QIC"}}{Quasi information criterion}
 #'   \item{\code{"iter"}}{number of iterations until convergence}
 #'   \item{\code{"triple"}}{(p, d, q)}
+#'   \item{\code{"pij"}}{a vector of remaining probability}
+#'   \item{\code{"cpij"}}{a vector of cumulative remaining probability}
 #' }
 #'
 #' When sub.num is specified, possible values are:
@@ -42,23 +48,25 @@
 #'   \item{\code{"T"}}{the estimated lower triangular matrix for subject i}
 #'   \item{\code{"Sigma"}}{the estimated covariance matrix for subject i}
 #'   \item{\code{"mu"}}{the estimated mean for subject i}
+#'   \item{\code{"pij"}}{a vector of remaining probability for subject i}
+#'   \item{\code{"cpij"}}{a vector of cumulative remaining probability for subject i}
 #' }
 #'
 #' @param sub.num refer to i's subject
 #'
-#' @examples
-#' fit.mcd <- geer(I(sqrt(cd4)) | id | time ~ 1 | 1, data = aids,
-#'   triple = c(8, 1, 3), cov.method = 'mcd')
+#' @examples fitgee.ar1 <- geer(cd4|id|time ~ 1|1, data = aids, triple =
+#'   c(6,3,3), method = 'gee-mcd', corr.struct = 'ar1', rho = 0.5, control =
+#'   geerControl(trace=TRUE))
 #'
-#' beta <- getGEER(fit.mcd, "beta")
-#' BIC  <- getGEER(fit.mcd, "BIC")
-#' Di   <- getGEER(fit.mcd, "D", 10)
+#' sd  <- getGEER(fitgee.ar1, "sd")
+#' QIC <- getGEER(fitgee.ar1, "QIC")
+#' Di  <- getGEER(fitgee.ar1, "D", 10)
 #'
 #' @export
 getGEER <- function(object, name, sub.num) UseMethod("getGEER")
 
 #' @describeIn getGEER Extract or Get Generalized Components from a Fitted Joint
-#' Mean Covariance Model
+#' GEE-MCD/WGEE-MCD Model
 #' @export
 getGEER.geerMod <- function(object,
   name = c("m", "Y", "X", "Z", "W", "H", "D", "T", "Sigma", "mu", "FIM",
@@ -74,7 +82,7 @@ getGEER.geerMod <- function(object,
   args    <- object@args
   devcomp <- object@devcomp
   rho     <- object@rho
-  
+
   if(sub.num < 0 || sub.num > length(args$m))
     stop("incorrect value for 'sub.num'")
 
@@ -89,9 +97,9 @@ getGEER.geerMod <- function(object,
   if (devcomp$dims["ID"] == 1) corrStruct <- "id"
   else if (devcomp$dims["CS"] == 1) corrStruct <- "cs"
   else if (devcomp$dims["AR1"] == 1) corrStruct <- "ar1"
-  
+
   obj <- new("gee_jmcm", m, Y, X, Z, W, corrStruct, rho)
-  
+
   if(sub.num == 0) {
     switch(name,
       "m" = args$m,
@@ -102,13 +110,13 @@ getGEER.geerMod <- function(object,
       "H" = args$H,
       "FIM" = obj$get_fim(theta),
       "theta"  = drop(opt$par),
-      "sd" = obj$get_sd(theta), 
+      "sd" = obj$get_sd(theta),
       "beta"   = drop(opt$beta),
       "lambda" = drop(opt$lambda),
       "gamma"  = drop(opt$gamma),
       "alpha"  = drop(opt$alpha),
-      "loglik" = opt$loglik,
-      "BIC"    = opt$BIC,
+      "quasilik" = opt$quasilik,
+      "QIC"    = opt$QIC,
       "iter"   = opt$iter,
       "triple" = object$triple,
       "n2loglik" = obj$n2loglik(theta),
@@ -145,7 +153,22 @@ lagseq <- function(time)
   res
 }
 
+
+#' @title Plot Fitted Curves for One or More geerMod Objects
 #'
+#' @description Plot fitted curves and corresponding 95\% confidence interval
+#' for one or more geerMod objects
+#'
+#' @param object a fitted joint GEE-MCD/WGEE-MCD model of class "geerMod", i.e.,
+#'   typically the result of geer().
+#' @param text some corresponding descriptions for the objects.
+#' @param ... additional pairs of 'object' and 'text'
+#' @param include.CI whether or not 95% confidence interval of the fitted values
+#'   for the first object should be plotted.
+#'
+#' @examples fitgee.ar1 <- geer(cd4|id|time ~ 1|1, data = aids, triple =
+#'   c(6,3,3), method = 'gee-mcd', corr.struct = 'ar1', rho = 0.5)
+#' fittedcurve(fitgee.ar1, text = "GEE-MCD fitted curve", include.CI = TRUE)
 #'
 #' @export
 fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
@@ -154,7 +177,7 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
   ndots <- length(dots)
 
   layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE))
-  
+
   # create a gee_jmcm object
   opt     <- object@opt
   args    <- object@args
@@ -167,46 +190,46 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
   Z = args$Z
   W = args$W
   theta  = drop(opt$par)
-  
+
   if (devcomp$dims["ID"] == 1) corrStruct <- "id"
   else if (devcomp$dims["CS"] == 1) corrStruct <- "cs"
   else if (devcomp$dims["AR1"] == 1) corrStruct <- "ar1"
-  
+
   obj <- new("gee_jmcm", m, Y, X, Z, W, corrStruct, rho)
   sd  <- obj$get_sd(theta)
   fim <- obj$get_fim(theta)
-  
+
   # initialization
   opt <- object@opt
-  
+
   beta <- opt$beta
   lambda <- opt$lambda
   gamma  <- opt$gamma
-  
+
   lbta <- length(beta)
   llmd <- length(lambda)
   lgma <- length(gamma)
-  
+
   lmd_sd <- sd[(lbta+1):(lbta+llmd)]
   gma_sd <- sd[(lbta+llmd+1):(lbta+llmd+lgma)]
-    
+
   args   <- object@args
   Y <- args[["Y"]]
   time <- args[["time"]]
-  
+
   ts   <- seq(min(time), max(time), length.out = 100)
   tslag <- seq(0, max(time) - min(time), length.out = 100)
-  
+
   ###############################
   # plot the fitted mean curves #
   ###############################
   nline <- 1
-  
+
   X.ts    <- NULL
   for(i in 0:(lbta-1)) X.ts    <- cbind(X.ts, ts^i)
-  
+
   Yest <- drop(X.ts %*% beta)
-  
+
   # ylim.max <- max(Yest)
   # ylim.min <- min(Yest)
   # ylim.diff <- ylim.max - ylim.min
@@ -216,98 +239,98 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
   plot(ts, Yest, type = "l", ylim = c(min(Y), max(Y)), xlab = "Time", ylab = "Response")
   # plot(time, Y, xlab = "Time", ylab = "Response")
   # lines(ts, Yest)
-  
+
   if (include.CI) {
     nline <- nline + 1
     fim_bta <- fim[1:lbta,1:lbta]
-    Y_var <- diag(X.ts %*% tcrossprod(solve(fim_bta),X.ts)) 
+    Y_var <- diag(X.ts %*% tcrossprod(solve(fim_bta),X.ts))
     Yest.u <- Yest + 1.96 * sqrt(Y_var)
     Yest.l <- Yest - 1.96 * sqrt(Y_var)
     lines(ts, Yest.u, lty = 2)
     lines(ts, Yest.l, lty = 2)
     text <- c(text, "95% confidence intervals")
   }
-  
+
   if (ndots)
   for(i in 1:(ndots/2)) {
     nline <- nline + 1
-    
+
     object2 <- dots[[2*i-1]]
     text2   <- dots[[2*i]]
     text    <- c(text, text2)
-    
+
     opt2 <- object2@opt
     beta2 <- opt2$beta
     lbta2 <- length(beta2)
-    
+
     Yest2 <- drop(X.ts %*% beta2)
-    
-    col <- 'black' 
+
+    col <- 'black'
     if(nline > 6) col <- 'grey'
     lines(ts, Yest2, lty = nline, col = col)
   }
-  
+
   col <- rep('black', nline)
   if (nline > 6) {
     col <- c(rep('black', 6), rep('grey', nline - 6))
   }
-  ncol <- 1 
+  ncol <- 1
   if (nline > 5) ncol <- 2
   legend(min(ts), max(Y), text, lty=1:nline, col=col, ncol=ncol)
 
   Z.ts    <- NULL
   W.tslag <- NULL
-  
+
   for(i in 0:(llmd-1)) Z.ts    <- cbind(Z.ts, ts^i)
   for(i in 0:(lgma-1)) W.tslag <- cbind(W.tslag, tslag^i)
-  
+
   Zlmd <- Z.ts %*% lambda
   Wgma <- W.tslag %*% gamma
-  
+
   ####################################
   # plot the fitted curves for logIV #
   ####################################
   nline <- 1
-  
+
   ylim.max <- max(Zlmd)
   ylim.min <- min(Zlmd)
   ylim.diff <- ylim.max - ylim.min
-  plot(ts, Zlmd, type = "l", 
+  plot(ts, Zlmd, type = "l",
        ylim = c(ylim.min-0.5*ylim.diff, ylim.max+0.5*ylim.diff),
        xlab="Time", ylab="Log-innovat. var.")
 
   if (include.CI) {
     nline <- nline + 1
     fim_lmd <- fim[(lbta+1):(lbta+llmd), (lbta+1):(lbta+llmd)]
-    Zlmd_var <- diag(Z.ts %*% tcrossprod(solve(fim_lmd),Z.ts)) 
+    Zlmd_var <- diag(Z.ts %*% tcrossprod(solve(fim_lmd),Z.ts))
     Zlmd.u <- Zlmd + 1.96 * sqrt(Zlmd_var)
     Zlmd.l <- Zlmd - 1.96 * sqrt(Zlmd_var)
     lines(ts, Zlmd.u, lty = 2)
     lines(ts, Zlmd.l, lty = 2)
   }
-  
+
   if(ndots)
   for(i in 1:(ndots/2)) {
     nline <- nline + 1
     object2 <- dots[[2*i-1]]
     text2   <- dots[[2*i]]
-    
+
     opt2 <- object2@opt
     lambda2 <- opt2$lambda
     llmd2 <- length(lambda2)
-    
+
     Zlmd2 <- Z.ts %*% lambda2
-    
-    col <- 'black' 
+
+    col <- 'black'
     if(nline > 6) col <- 'grey'
     lines(ts, Zlmd2, lty = nline, col = col)
   }
-  
+
   ###################################
   # plot the fitted curves for GARP #
   ###################################
   nline <- 1
-  
+
   ylim.max <- max(Wgma)
   ylim.min <- min(Wgma)
   ylim.diff <- ylim.max - ylim.min
@@ -317,197 +340,196 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
   # phi <- -Tt[upper.tri(Tt, diag=FALSE)]
   # plot(tlag, phi, xlab="Lag", ylab="Autoregres. coeffic.")
   # lines(tslag, Wgma)
-  
+
   if (include.CI) {
     nline <- nline + 1
     fim_gma <- fim[(lbta+llmd+1):(lbta+llmd+lgma), (lbta+llmd+1):(lbta+llmd+lgma)]
-    Wgma_var <- diag(W.tslag %*% tcrossprod(solve(fim_gma),W.tslag)) 
+    Wgma_var <- diag(W.tslag %*% tcrossprod(solve(fim_gma),W.tslag))
     Wgma.u <- Wgma + 1.96 * sqrt(Wgma_var)
     Wgma.l <- Wgma - 1.96 * sqrt(Wgma_var)
     lines(tslag, Wgma.u, lty = 2)
     lines(tslag, Wgma.l, lty = 2)
   }
-  
+
   if(ndots)
   for(i in 1:(ndots/2)) {
     nline <- nline + 1
     object2 <- dots[[2*i-1]]
     text2   <- dots[[2*i]]
-    
+
     opt2 <- object2@opt
     gamma2 <- opt2$gamma
     lgma2 <- length(gamma2)
-    
+
     Wgma2 <- W.tslag %*% gamma2
-    
-    col <- 'black' 
+
+    col <- 'black'
     if(nline > 6) col <- 'grey'
     lines(tslag, Wgma2, lty = nline, col = col)
   }
-  
 }
 
-#' @title Plot Fitted Mean Curves
-#'
-#' @description plot fitted mean curves
-#'
-#' @param object a fitted joint mean covariance model of class "geerMod", i.e.,
-#' typically the result of geer().
-#'
-#' @examples
-#' cattleA <- cattle[cattle$group=='A', ]
-#' fit.mcd <- geer(weight | id | I(ceiling(day/14 + 1)) ~ 1 | 1, data=cattleA,
-#'   triple = c(8, 3, 4), cov.method = 'mcd')
-#' meanplot(fit.mcd)
-#'
-#' @export
-meanplot <- function(object)
-{
-  op <- par(mfrow = c(1, 1))
+## #' @title Plot Fitted Mean Curves
+## #'
+## #' @description plot fitted mean curves
+## #'
+## #' @param object a fitted joint mean covariance model of class "geerMod", i.e.,
+## #' typically the result of geer().
+## #'
+## #' @examples
+## #' cattleA <- cattle[cattle$group=='A', ]
+## #' fit.mcd <- geer(weight | id | I(ceiling(day/14 + 1)) ~ 1 | 1, data=cattleA,
+## #'   triple = c(8, 3, 4), cov.method = 'mcd')
+## #' meanplot(fit.mcd)
+## #'
+## #' @export
+## meanplot <- function(object)
+## {
+##   op <- par(mfrow = c(1, 1))
 
-  opt <- object@opt
-  beta <- opt$beta
-  lbta <- length(beta)
+##   opt <- object@opt
+##   beta <- opt$beta
+##   lbta <- length(beta)
 
-  args   <- object@args
-  Y <- args[["Y"]]
-  time <- args[["time"]]
+##   args   <- object@args
+##   Y <- args[["Y"]]
+##   time <- args[["time"]]
 
-  ts   <- seq(min(time), max(time), length.out = 100)
+##   ts   <- seq(min(time), max(time), length.out = 100)
 
-  X.ts    <- NULL
-  for(i in 0:(lbta-1)) X.ts    <- cbind(X.ts, ts^i)
+##   X.ts    <- NULL
+##   for(i in 0:(lbta-1)) X.ts    <- cbind(X.ts, ts^i)
 
-  Yest <- drop(X.ts %*% beta)
-  plot(time, Y, xlab = "Time", ylab = "Response")
-  lines(ts, Yest)
-}
+##   Yest <- drop(X.ts %*% beta)
+##   plot(time, Y, xlab = "Time", ylab = "Response")
+##   lines(ts, Yest)
+## }
 
-#' @title Plot Sample Regressograms and Fitted Curves
-#'
-#' @description Plot the sample regressograms based on the sample covariance
-#' matrix and superimpose the corresponding fitted curves to check the model
-#' fitting when the longitudinal dataset is balanced.
-#'
-#' @param object a fitted joint mean covariance model of class "geerMod", i.e.,
-#' typically the result of geer().
-#' @param time a vector of obeservation time points
-#'
-#' @examples
-#' cattleA <- cattle[cattle$group=='A', ]
-#' fit.mcd <- geer(weight | id | I(ceiling(day/14 + 1)) ~ 1 | 1, data=cattleA,
-#'   triple = c(8, 3, 4), cov.method = 'mcd')
-#' regressogram(fit.mcd, time = 1:11)
-#'
-#' @export
-regressogram <- function(object, time)
-{
-  debug <- 0
+## #' @title Plot Sample Regressograms and Fitted Curves
+## #'
+## #' @description Plot the sample regressograms based on the sample covariance
+## #' matrix and superimpose the corresponding fitted curves to check the model
+## #' fitting when the longitudinal dataset is balanced.
+## #'
+## #' @param object a fitted joint mean covariance model of class "geerMod", i.e.,
+## #' typically the result of geer().
+## #' @param time a vector of obeservation time points
+## #'
+## #' @examples
+## #' cattleA <- cattle[cattle$group=='A', ]
+## #' fit.mcd <- geer(weight | id | I(ceiling(day/14 + 1)) ~ 1 | 1, data=cattleA,
+## #'   triple = c(8, 3, 4), cov.method = 'mcd')
+## #' regressogram(fit.mcd, time = 1:11)
+## #'
+## #' @export
+## regressogram <- function(object, time)
+## {
+##   debug <- 0
 
-  op <- par(mfrow = c(1, 2))
+##   op <- par(mfrow = c(1, 2))
 
-  opt <- object@opt
+##   opt <- object@opt
 
-  lambda <- opt$lambda
-  gamma  <- opt$gamma
+##   lambda <- opt$lambda
+##   gamma  <- opt$gamma
 
-  llmd <- length(lambda)
-  lgma <- length(gamma)
+##   llmd <- length(lambda)
+##   lgma <- length(gamma)
 
-  args   <- object@args
-  dims   <- object@devcomp$dims
+##   args   <- object@args
+##   dims   <- object@devcomp$dims
 
-  m <- args[["m"]]
-  Y <- args[["Y"]]
-  X <- args[["X"]]
-  Z <- args[["Z"]]
-  W <- args[["W"]]
+##   m <- args[["m"]]
+##   Y <- args[["Y"]]
+##   X <- args[["X"]]
+##   Z <- args[["Z"]]
+##   W <- args[["W"]]
 
-  if (length(unique(m)) != 1)
-    stop("No regressograms. Unbalanced longitudinal dataset.")
+##   if (length(unique(m)) != 1)
+##     stop("No regressograms. Unbalanced longitudinal dataset.")
 
-  # create a data matrix
-  DataMat <- t(Y[1:m[1]])
-  for(i in 2:length(m))
-  {
-    DataMat <- rbind(DataMat, t(Y[(sum(m[1:(i-1)])+1):sum(m[1:i])]))
-  }
-  dimnames(DataMat) <- NULL
+##   # create a data matrix
+##   DataMat <- t(Y[1:m[1]])
+##   for(i in 2:length(m))
+##   {
+##     DataMat <- rbind(DataMat, t(Y[(sum(m[1:(i-1)])+1):sum(m[1:i])]))
+##   }
+##   dimnames(DataMat) <- NULL
 
-  S <- cov(DataMat)  # sample covariance matrix
-  R <- cor(DataMat)  # sample correlation matrix
+##   S <- cov(DataMat)  # sample covariance matrix
+##   R <- cor(DataMat)  # sample correlation matrix
 
-  # FIXME: singularity check
-  C <- t(chol(S))    # Cholesky factor of S
-  D <- diag(diag(C))
+##   # FIXME: singularity check
+##   C <- t(chol(S))    # Cholesky factor of S
+##   D <- diag(diag(C))
 
-  # transpose of matrix T in MCD
-  Tt <- t(forwardsolve(C %*% diag(diag(C)^(-1)), diag(dim(D)[1])))
+##   # transpose of matrix T in MCD
+##   Tt <- t(forwardsolve(C %*% diag(diag(C)^(-1)), diag(dim(D)[1])))
 
-  # transpose of matrix L in ACD
-  Lt <- t(diag(diag(C)^(-1)) %*% C)
+##   # transpose of matrix L in ACD
+##   Lt <- t(diag(diag(C)^(-1)) %*% C)
 
-  ts    <- seq(min(time), max(time), length.out = 100)
-  tlag  <- lagseq(time)
-  tslag <- seq(min(tlag), max(tlag), length.out = 100)
+##   ts    <- seq(min(time), max(time), length.out = 100)
+##   tlag  <- lagseq(time)
+##   tslag <- seq(min(tlag), max(tlag), length.out = 100)
 
-  Z.ts    <- NULL
-  W.tslag <- NULL
-  for(i in 0:(llmd-1)) Z.ts <- cbind(Z.ts, ts^i)
-  for(i in 0:(lgma-1)) W.tslag <- cbind(W.tslag, tslag^i)
+##   Z.ts    <- NULL
+##   W.tslag <- NULL
+##   for(i in 0:(llmd-1)) Z.ts <- cbind(Z.ts, ts^i)
+##   for(i in 0:(lgma-1)) W.tslag <- cbind(W.tslag, tslag^i)
 
-  Zlmd <- Z.ts %*% lambda
-  Wgma <- W.tslag %*% gamma
+##   Zlmd <- Z.ts %*% lambda
+##   Wgma <- W.tslag %*% gamma
 
-  # dims["MCD"] = 1
-  # dims[]
+##   # dims["MCD"] = 1
+##   # dims[]
 
-  # plot regressogram for MCD, ACD or HPC
-  if (dims["MCD"] == 1) {
-    # the first plot
-    plot(time, log(diag(D)^2), xlab="Time", ylab="Log-innovat. var.")
-    lines(ts, Zlmd)
+##   # plot regressogram for MCD, ACD or HPC
+##   if (dims["MCD"] == 1) {
+##     # the first plot
+##     plot(time, log(diag(D)^2), xlab="Time", ylab="Log-innovat. var.")
+##     lines(ts, Zlmd)
 
-    # the second plot
-    phi <- -Tt[upper.tri(Tt, diag=FALSE)]
-    plot(tlag, phi, xlab="Lag", ylab="Autoregres. coeffic.")
-    lines(tslag, Wgma)
+##     # the second plot
+##     phi <- -Tt[upper.tri(Tt, diag=FALSE)]
+##     plot(tlag, phi, xlab="Lag", ylab="Autoregres. coeffic.")
+##     lines(tslag, Wgma)
 
-  } else if (dims["ACD"] == 1) {
-    # the first plot
-    plot(time, log(diag(D)^2), xlab="Time", ylab="Log-innovat. var.")
-    lines(ts, Zlmd)
+##   } else if (dims["ACD"] == 1) {
+##     # the first plot
+##     plot(time, log(diag(D)^2), xlab="Time", ylab="Log-innovat. var.")
+##     lines(ts, Zlmd)
 
-    # the second plot
-    phi <- Lt[upper.tri(Lt, diag=FALSE)]
-    plot(tlag, phi, xlab="Lag", ylab="MA. coeffic.")
-    lines(tslag, Wgma)
+##     # the second plot
+##     phi <- Lt[upper.tri(Lt, diag=FALSE)]
+##     plot(tlag, phi, xlab="Lag", ylab="MA. coeffic.")
+##     lines(tslag, Wgma)
 
-  } else if (dims["HPC"] == 1) {
-    # the first plot
-    H <- diag(sqrt(diag(S)))
-    plot(time, log(diag(H)^2), xlab="Time", ylab="Log-variance")
-    lines(ts, Zlmd)
+##   } else if (dims["HPC"] == 1) {
+##     # the first plot
+##     H <- diag(sqrt(diag(S)))
+##     plot(time, log(diag(H)^2), xlab="Time", ylab="Log-variance")
+##     lines(ts, Zlmd)
 
-    # the second plot
-    B <- t(chol(R))
-    PhiMat <- matrix(0, dim(B)[1], dim(B)[2])
-    for(j in 2:dim(B)[1]) {
-      for(k in 1:(j-1)) {
-        tmp <- 1
-        if (k != 1) {
-          tmp <- prod(sin(PhiMat[j, 1:(k-1)]))
-        } # if
-        PhiMat[j,k] <- acos(B[j, k]/tmp)
-      } # for k
-    } # for j
-    PhiMatt <- t(PhiMat)
+##     # the second plot
+##     B <- t(chol(R))
+##     PhiMat <- matrix(0, dim(B)[1], dim(B)[2])
+##     for(j in 2:dim(B)[1]) {
+##       for(k in 1:(j-1)) {
+##         tmp <- 1
+##         if (k != 1) {
+##           tmp <- prod(sin(PhiMat[j, 1:(k-1)]))
+##         } # if
+##         PhiMat[j,k] <- acos(B[j, k]/tmp)
+##       } # for k
+##     } # for j
+##     PhiMatt <- t(PhiMat)
 
-    phi <- PhiMatt[upper.tri(PhiMatt, diag=FALSE)]
-    plot(tlag, phi, xlab="Lag", ylab="Angles")
-    lines(tslag, Wgma)
-  } # HPC
-}
+##     phi <- PhiMatt[upper.tri(PhiMatt, diag=FALSE)]
+##     plot(tlag, phi, xlab="Lag", ylab="Angles")
+##     lines(tslag, Wgma)
+##   } # HPC
+## }
 
 #' @title Plot Fitted Curves and Corresponding Confidence Interval using
 #' bootstrapping method
@@ -519,12 +541,12 @@ regressogram <- function(object, time)
 #' typically the result of geer().
 #' @param nboot number of the bootstrap replications.
 #'
-#' @examples
-#' \dontrun{
+#' @examples \dontrun{
 #' # It may take hours for large bootstrap replications
-#' fit.mcd <- geer(I(sqrt(cd4)) | id | time ~ 1 | 1, data=aids,
-#'   triple = c(8, 1, 3), cov.method = 'mcd', control = geerControl(trace=T))
-#' bootcurve(fit.mcd, nboot = 1000)
+#' fitgee.ar1 <- geer(cd4|id|time ~ 1|1, data = aids, triple = c(6,3,3),
+#' method = 'gee-mcd', corr.struct = 'ar1', rho = 0.5,
+#' control = geerControl(trace=TRUE))
+#' bootcurve(fitgee.ar1, nboot = 1000)
 #' }
 #'
 #' @export
@@ -762,115 +784,149 @@ bootcurve <- function(object, nboot)
 #   c(p,d,q)
 # }
 
-# function to generate cattleB data with specified dropout rate
+#' @title Generate Cattle B Data with Pre-specified Dropout Rate
+#'
+#' @description We assume that all cattle have the first four observations and
+#'   there is a certain chance that some cows will quit the study (dropout) at
+#'   the fifth measurement if their weights are below a certain threshold. The
+#'   threshold value for the weight is chosen so that some fixed rates of MAR
+#'   dropout at the fifth measurement time.
+#'
+#' @param dropout.rate the dropout rate at the fifth measurement.
+#'
 #' @export
 GenerateCattleMAR <- function(dropout.rate)
 {
+  data("cattle")
   cattleB <- cattle[cattle$group == 'B', ]
   # data matrix for cattleB (without dropout)
-  dm <- NULL 
-  for(i in 31:60) dm <- rbind(dm, cattleB[cattleB$id == i, ]$weight) 
+  dm <- NULL
+  for(i in 31:60) dm <- rbind(dm, cattleB[cattleB$id == i, ]$weight)
   # data matrix for cattleB (ordered by the 5th measurement )
   datamatrix <- dm[order(dm[,5]), ]
-  
+
   time1 <- c(0, 14, 28, 42)
   time2 <- c(0, 14, 28, 42, 56, 70, 84, 98, 112, 126, 133)
-  
+
   ndrop  <- 30 * dropout.rate
   id     <- c(rep(1:ndrop, each=4), rep((ndrop+1):30, each=11))
-  
+
   day1 <- rep(time1, ndrop)
   day2 <- rep(time2, 30-ndrop)
   day <- c(day1, day2)
-  
+
   group  <- rep('B', ndrop*4 + (30-ndrop)*11)
-  
+
   weight1 <- t(datamatrix[1:ndrop, 1:4])
   weight2 <- t(datamatrix[(ndrop+1):30, ])
   weight <- c(c(weight1), c(weight2))
-  
-  data.frame(id, day, group, weight)
-}
-
-
-# function to generate cattleB data with specified parameters for dropout model
-#' @export
-GenerateCattleIPW <- function(alpha)
-{
-  debug = 0
-  
-  cattleB <- cattle[cattle$group == 'B', ]
-  # data matrix for cattleB (without dropout)
-  datamatrix <- NULL 
-  for(i in 31:60) 
-    datamatrix <- rbind(datamatrix, cattleB[cattleB$id == i, ]$weight) 
-
-  time <- c(0, 14, 28, 42, 56, 70, 84, 98, 112, 126, 133)
-  
-  m <- rep(11, 30) 
-  Y <- cattleB$weight
-  ipwobj <- new("ipw", m, Y, 1)
-  p <- ipwobj$get_p(alpha)
-  
-  id <- NULL
-  day <- NULL
-  group <- NULL
-  weight <- NULL
-  for(sub.num in 1:30) {
-    
-    if (sub.num == 1) vindex = 1
-    else vindex = sum(m[1:(sub.num-1)]) + 1
-    pij <- p[vindex:(vindex+m[sub.num]-1)]
-
-    if(debug) cat("\npij =", pij)
-        
-    obsindex <- 1
-    remain   <- 1
-    while(obsindex <= 11) {
-      remain <- rbinom(1,1,pij[obsindex])
-      if (remain == 0) break
-      
-      id <- c(id, sub.num)
-      day <- c(day, time[obsindex])
-      group <- c(group, 'B')
-      weight <- c(weight, datamatrix[sub.num, obsindex])
-      
-      obsindex <- obsindex + 1
-
-      if(debug) {
-        if(is.na(remain)) cat("i = ", sub.num, " j = ", obsindex)
-      }
-    }
-  }
 
   data.frame(id, day, group, weight)
 }
 
 
+## # function to generate cattleB data with specified parameters for dropout model
+## #' @export
+# GenerateCattleIPW <- function(alpha)
+# {
+#   debug = 0
+# 
+#   cattleB <- cattle[cattle$group == 'B', ]
+#   # data matrix for cattleB (without dropout)
+#   datamatrix <- NULL
+#   for(i in 31:60)
+#     datamatrix <- rbind(datamatrix, cattleB[cattleB$id == i, ]$weight)
+# 
+#   time <- c(0, 14, 28, 42, 56, 70, 84, 98, 112, 126, 133)
+# 
+#   m <- rep(11, 30)
+#   Y <- cattleB$weight
+#   ipwobj <- new("ipw", m, Y, 1)
+#   p <- ipwobj$get_p(alpha)
+# 
+#   id <- NULL
+#   day <- NULL
+#   group <- NULL
+#   weight <- NULL
+#   for(sub.num in 1:30) {
+# 
+#     if (sub.num == 1) vindex = 1
+#     else vindex = sum(m[1:(sub.num-1)]) + 1
+#     pij <- p[vindex:(vindex+m[sub.num]-1)]
+# 
+#     if(debug) cat("\npij =", pij)
+# 
+#     obsindex <- 1
+#     remain   <- 1
+#     while(obsindex <= 11) {
+#       remain <- rbinom(1,1,pij[obsindex])
+#       if (remain == 0) break
+# 
+#       id <- c(id, sub.num)
+#       day <- c(day, time[obsindex])
+#       group <- c(group, 'B')
+#       weight <- c(weight, datamatrix[sub.num, obsindex])
+# 
+#       obsindex <- obsindex + 1
+# 
+#       if(debug) {
+#         if(is.na(remain)) cat("i = ", sub.num, " j = ", obsindex)
+#       }
+#     }
+#   }
+# 
+#   data.frame(id, day, group, weight)
+# }
+
+
+#' @title Calculate the Remaining Probabilities in Inverse Probability Weights
+#'
+#' @description Calculate a vector of remaining probabilities in inverse
+#'   probability weights for one specific or all subjects
+#'
+#' @param m an integer vector of number of measurements for each subject.
+#' @param Y a vector of responses for all subjects.
+#' @param order the order for MAR remaining model.
+#' @param alpha parameters in MAR remaining model.
+#' @param sub.num subject number (0 = all subjects).
+#'
 #' @export
 CalculateIPWprob <- function(m, Y, order, alpha, sub.num = 0) {
   obj <- new("ipw", m, Y, order)
   pij <- obj$get_p(alpha)
-  
+
   if (sub.num != 0) {
     if (sub.num == 1) vindex = 1
     else vindex = sum(m[1:(sub.num-1)]) + 1
     pij <- pij[vindex:(vindex+m[sub.num]-1)]
-  }  
+  }
 
-  pij  
+  pij
 }
 
+
+#' @title Calculate the Cumulative Remaining Probabilities in Inverse
+#'   Probability Weights
+#'
+#' @description Calculate a vector of cumulative remaining probabilities in
+#'   inverse probability weights for one specific or all subjects.
+#'
+#' @param m an integer vector of number of measurements for each subject.
+#' @param Y a vector of responses for all subjects.
+#' @param order the order for MAR remaining model.
+#' @param alpha parameters in MAR remaining model.
+#' @param sub.num subject number (0 = all subjects).
+#'
 #' @export
 CalculateIPWcumprob <- function(m, Y, order, alpha, sub.num = 0) {
   obj <- new("ipw", m, Y, order)
   Pi <- obj$get_Pi(alpha)
-  
+
   if (sub.num != 0) {
     if (sub.num == 1) vindex = 1
     else vindex = sum(m[1:(sub.num-1)]) + 1
     Pi <- Pi[vindex:(vindex+m[sub.num]-1)]
-  }  
-  
-  Pi 
+  }
+
+  Pi
 }
