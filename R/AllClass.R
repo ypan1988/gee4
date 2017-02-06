@@ -54,7 +54,7 @@ setMethod("initialize", "gee_jmcm", function(.Object, ...) {
 
 #' Class ipw
 #'
-#' Class \code{ipw} defines the technique of inverse probability weighting.
+#' Class \code{ipw} defines the inverse probability weighting.
 #'
 #' @name ipw-class
 #'

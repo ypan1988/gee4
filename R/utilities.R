@@ -65,8 +65,8 @@
 #' @export
 getGEER <- function(object, name, sub.num) UseMethod("getGEER")
 
-#' @describeIn getGEER Extract or Get Generalized Components from a Fitted Joint
-#' GEE-MCD/WGEE-MCD Model
+#' @describeIn getGEER Extract or Get Generalized Components from a Fitted
+#'   GEE-MCD/WGEE-MCD Model
 #' @export
 getGEER.geerMod <- function(object,
   name = c("m", "Y", "X", "Z", "W", "H", "D", "T", "Sigma", "mu", "FIM",
@@ -544,8 +544,8 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
 #' @examples \dontrun{
 #' # It may take hours for large bootstrap replications
 #' fitgee.ar1 <- geer(cd4|id|time ~ 1|1, data = aids, triple = c(6,3,3),
-#' method = 'gee-mcd', corr.struct = 'ar1', rho = 0.5,
-#' control = geerControl(trace=TRUE))
+#'   method = 'gee-mcd', corr.struct = 'ar1', rho = 0.5,
+#'   control = geerControl(trace=TRUE))
 #' bootcurve(fitgee.ar1, nboot = 1000)
 #' }
 #'

@@ -70,7 +70,7 @@ Extract (or get) "components" - in a generalized sense - from a
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{geerMod}: Extract or Get Generalized Components from a Fitted Joint
+\item \code{geerMod}: Extract or Get Generalized Components from a Fitted
 GEE-MCD/WGEE-MCD Model
 }}
 \examples{

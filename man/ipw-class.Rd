@@ -5,6 +5,6 @@
 \alias{ipw-class}
 \title{Class ipw}
 \description{
-Class \code{ipw} defines the technique of inverse probability weighting.
+Class \code{ipw} defines the inverse probability weighting.
 }
 
