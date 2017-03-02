@@ -6,6 +6,7 @@
 #include "gee_jmcm.h"
 
 
+//'@export
 // [[Rcpp::export]]
 Rcpp::List ipw_estimation(arma::uvec m, arma::vec Y, arma::uword order, bool trace = false) {
   int debug = 0;
@@ -28,7 +29,7 @@ Rcpp::List ipw_estimation(arma::uvec m, arma::vec Y, arma::uword order, bool tra
 
 }
 
-
+//'@export
 // [[Rcpp::export]]
 Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, arma::mat W,
                            arma::vec H,
