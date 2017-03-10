@@ -9,4 +9,3 @@ Class \code{gee_jmcm} defines a Modified Cholesky decomposition (MCD) based
 joint mean covariance model within the framework of (weighted) generalised
 estimating equations.
 }
-

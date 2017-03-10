@@ -1,7 +1,6 @@
 Package: gee4
 Type: Package
-Title: Joint Mean-Covariance Models within the Framework of (Weighted) 
-    Generalised Estimating Equations (GEE/WGEE) using 'Armadillo' and S4
+Title: Generalised Estimating Equations (GEE/WGEE) using 'Armadillo' and S4
 Version: 0.1.0.0
 Authors@R: c(person("Jianxin", "Pan", email = "Jianxin.Pan@manchester.ac.uk", 
                     role = c("aut")),
@@ -19,9 +18,9 @@ SystemRequirements: C++11
 Depends: R (>= 3.2.2)
 Imports: Formula, methods, Rcpp (>= 0.12.4)
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.0
 NeedsCompilation: yes
 Author: Jianxin Pan [aut],
     Yi Pan [aut, cre]
 URL: https://github.com/ypan1988/gee4/
-BugReports: https://github.com/ypan1988/gee4/issues
+BugReports: https://github.com/ypan1988/gee4/issues/

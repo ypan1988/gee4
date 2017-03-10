@@ -14,4 +14,3 @@ typically the result of geer().}
 \description{
 Print information for geerMod-class
 }
-

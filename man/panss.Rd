@@ -26,4 +26,3 @@ clinical trial data from a randomised clinical trial.
 }
 }
 \keyword{datasets}
-

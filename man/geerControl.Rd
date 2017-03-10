@@ -26,4 +26,3 @@ used}
 Construct control structures for GEE-MCD/WGEE-MCD model
 fitting
 }
-

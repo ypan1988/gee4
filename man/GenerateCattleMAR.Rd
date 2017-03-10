@@ -16,4 +16,3 @@ We assume that all cattle have the first four observations and
   threshold value for the weight is chosen so that some fixed rates of MAR
   dropout at the fifth measurement time.
 }
-

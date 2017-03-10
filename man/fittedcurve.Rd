@@ -27,4 +27,3 @@ fitgee.ar1 <- geer(cd4|id|time ~ 1|1, data = aids, triple =
 fittedcurve(fitgee.ar1, text = "GEE-MCD fitted curve", include.CI = TRUE)
 
 }
-

@@ -22,4 +22,3 @@ CalculateIPWcumprob(m, Y, order, alpha, sub.num = 0)
 Calculate a vector of cumulative remaining probabilities in
   inverse probability weights for one specific or all subjects.
 }
-

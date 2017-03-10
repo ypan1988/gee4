@@ -27,4 +27,3 @@ bootcurve(fitgee.ar1, nboot = 1000)
 }
 
 }
-

@@ -7,4 +7,3 @@
 \description{
 Class \code{ipw} defines the inverse probability weighting.
 }
-
