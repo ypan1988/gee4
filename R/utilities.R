@@ -798,9 +798,9 @@ bootcurve <- function(object, nboot)
 GenerateCattleMAR <- function(dropout.rate)
 {
   # data("cattle")
-  # cattleB <- cattle[cattle$group == 'B', ]
-  utils::data(sysdata, envir = environment())
-  cattleB <- sysdata[sysdata$group == 'B', ]
+  cattleB <- cattle[cattle$group == 'B', ]
+  # utils::data(sysdata, envir = environment())
+  # cattleB <- sysdata[sysdata$group == 'B', ]
   # data matrix for cattleB (without dropout)
   dm <- NULL
   for(i in 31:60) dm <- rbind(dm, cattleB[cattleB$id == i, ]$weight)
