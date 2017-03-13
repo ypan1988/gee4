@@ -121,6 +121,7 @@ namespace dragonwell {
         }
         if (test < kTolX) return check;
       }
+      return check;
     }
 
     arma::uword n_iters() {return n_iter_;}

@@ -262,7 +262,7 @@ ldFormula <- function(formula, data = NULL, triple = c(3,3,3),
     if (length(weights.vec) != length(Y)) stop("incorrect dimension for the weights vector")
     H <- weights.vec
   }
-  
+
   list(m = m, Y = Y, X = X, Z = Z, W = W, H = H, time = time)
 }
 

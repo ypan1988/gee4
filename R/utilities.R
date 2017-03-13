@@ -797,8 +797,10 @@ bootcurve <- function(object, nboot)
 #' @export
 GenerateCattleMAR <- function(dropout.rate)
 {
-  data("cattle")
-  cattleB <- cattle[cattle$group == 'B', ]
+  # data("cattle")
+  # cattleB <- cattle[cattle$group == 'B', ]
+  utils::data(sysdata, envir = environment())
+  cattleB <- sysdata[sysdata$group == 'B', ]
   # data matrix for cattleB (without dropout)
   dm <- NULL
   for(i in 31:60) dm <- rbind(dm, cattleB[cattleB$id == i, ]$weight)
@@ -830,51 +832,51 @@ GenerateCattleMAR <- function(dropout.rate)
 # GenerateCattleIPW <- function(alpha)
 # {
 #   debug = 0
-# 
+#
 #   cattleB <- cattle[cattle$group == 'B', ]
 #   # data matrix for cattleB (without dropout)
 #   datamatrix <- NULL
 #   for(i in 31:60)
 #     datamatrix <- rbind(datamatrix, cattleB[cattleB$id == i, ]$weight)
-# 
+#
 #   time <- c(0, 14, 28, 42, 56, 70, 84, 98, 112, 126, 133)
-# 
+#
 #   m <- rep(11, 30)
 #   Y <- cattleB$weight
 #   ipwobj <- new("ipw", m, Y, 1)
 #   p <- ipwobj$get_p(alpha)
-# 
+#
 #   id <- NULL
 #   day <- NULL
 #   group <- NULL
 #   weight <- NULL
 #   for(sub.num in 1:30) {
-# 
+#
 #     if (sub.num == 1) vindex = 1
 #     else vindex = sum(m[1:(sub.num-1)]) + 1
 #     pij <- p[vindex:(vindex+m[sub.num]-1)]
-# 
+#
 #     if(debug) cat("\npij =", pij)
-# 
+#
 #     obsindex <- 1
 #     remain   <- 1
 #     while(obsindex <= 11) {
 #       remain <- rbinom(1,1,pij[obsindex])
 #       if (remain == 0) break
-# 
+#
 #       id <- c(id, sub.num)
 #       day <- c(day, time[obsindex])
 #       group <- c(group, 'B')
 #       weight <- c(weight, datamatrix[sub.num, obsindex])
-# 
+#
 #       obsindex <- obsindex + 1
-# 
+#
 #       if(debug) {
 #         if(is.na(remain)) cat("i = ", sub.num, " j = ", obsindex)
 #       }
 #     }
 #   }
-# 
+#
 #   data.frame(id, day, group, weight)
 # }
 
