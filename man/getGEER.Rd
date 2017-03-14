@@ -9,8 +9,8 @@
 getGEER(object, name, sub.num)
 
 \method{getGEER}{geerMod}(object, name = c("m", "Y", "X", "Z", "W", "H", "D",
-  "T", "Sigma", "mu", "FIM", "theta", "sd", "beta", "lambda", "gamma", "alpha",
-  "loglik", "BIC", "iter", "triple", "pij", "cpij"), sub.num = 0)
+  "T", "Sigma", "mu", "theta", "beta", "lambda", "gamma", "alpha", "sd", "FIM",
+  "quasilik", "BIC", "iter", "triple", "pij", "cpij"), sub.num = 0)
 }
 \arguments{
 \item{object}{a fitted joint mean covariance model of class "geerMod", i.e.,

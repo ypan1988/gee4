@@ -69,9 +69,9 @@ getGEER <- function(object, name, sub.num) UseMethod("getGEER")
 #'   GEE-MCD/WGEE-MCD Model
 #' @export
 getGEER.geerMod <- function(object,
-  name = c("m", "Y", "X", "Z", "W", "H", "D", "T", "Sigma", "mu", "FIM",
-    "theta", "sd", "beta", "lambda", "gamma", "alpha", "loglik", "BIC", "iter",
-    "triple", "pij", "cpij"),
+  name = c("m", "Y", "X", "Z", "W", "H", "D", "T", "Sigma", "mu",
+           "theta", "beta", "lambda", "gamma", "alpha", "sd", "FIM",
+           "quasilik", "BIC", "iter", "triple", "pij", "cpij"),
   sub.num = 0)
 {
   if(missing(name)) stop("'name' must not be missing")
@@ -98,7 +98,8 @@ getGEER.geerMod <- function(object,
   else if (devcomp$dims["CS"] == 1) corrStruct <- "cs"
   else if (devcomp$dims["AR1"] == 1) corrStruct <- "ar1"
 
-  obj <- new("gee_jmcm", m, Y, X, Z, W, corrStruct, rho)
+  # obj <- new("gee_jmcm", m, Y, X, Z, W, corrStruct, rho)
+  obj <- .Call("gee_jmcm__new", m, Y, X, Z, W, corrStruct, rho)
 
   if(sub.num == 0) {
     switch(name,
@@ -108,34 +109,41 @@ getGEER.geerMod <- function(object,
       "Z" = args$Z,
       "W" = args$W,
       "H" = args$H,
-      "FIM" = obj$get_fim(theta),
       "theta"  = drop(opt$par),
-      "sd" = obj$get_sd(theta),
       "beta"   = drop(opt$beta),
       "lambda" = drop(opt$lambda),
       "gamma"  = drop(opt$gamma),
       "alpha"  = drop(opt$alpha),
+      "sd"     = .Call("gee_jmcm__get_sd", obj, theta), # "sd" = obj$get_sd(theta),
+      "FIM"    = .Call("gee_jmcm__get_fim", obj, theta), # "FIM" = obj$get_fim(theta),
       "quasilik" = opt$quasilik,
-      "QIC"    = opt$QIC,
+      "QIC"      = opt$QIC,
       "iter"   = opt$iter,
       "triple" = object$triple,
-      "n2loglik" = obj$n2loglik(theta),
-      "grad"     = obj$grad(theta),
       "pij"    = drop(opt$pij),
       "cpij"    = drop(opt$cpij))
   } else {
       if (sub.num == 1) vindex = 1
       else vindex = sum(m[1:(sub.num-1)]) + 1
-    switch(name,
-      "m" = obj$get_m(sub.num),
-      "Y" = obj$get_Y(sub.num),
-      "X" = obj$get_X(sub.num),
-      "Z" = obj$get_Z(sub.num),
-      "W" = obj$get_W(sub.num),
-      "D" = obj$get_D(theta, sub.num),
-      "T" = obj$get_T(theta, sub.num),
-      "Sigma" = obj$get_Sigma(theta, sub.num),
-      "mu"    = obj$get_mu(theta, sub.num),
+      switch(name,
+             "m"     = .Call("gee_jmcm__get_m",     obj, sub.num),
+             "Y"     = .Call("gee_jmcm__get_Y",     obj, sub.num),
+             "X"     = .Call("gee_jmcm__get_X",     obj, sub.num),
+             "Z"     = .Call("gee_jmcm__get_Z",     obj, sub.num),
+             "W"     = .Call("gee_jmcm__get_W",     obj, sub.num),
+             "D"     = .Call("gee_jmcm__get_D",     obj, theta, sub.num),
+             "T"     = .Call("gee_jmcm__get_T",     obj, theta, sub.num),
+             "Sigma" = .Call("gee_jmcm__get_Sigma", obj, theta, sub.num),
+             "mu"    = .Call("gee_jmcm__get_mu",    obj, theta, sub.num),
+      ## "m" = obj$get_m(sub.num),
+      ## "Y" = obj$get_Y(sub.num),
+      ## "X" = obj$get_X(sub.num),
+      ## "Z" = obj$get_Z(sub.num),
+      ## "W" = obj$get_W(sub.num),
+      ## "D" = obj$get_D(theta, sub.num),
+      ## "T" = obj$get_T(theta, sub.num),
+      ## "Sigma" = obj$get_Sigma(theta, sub.num),
+      ## "mu"    = obj$get_mu(theta, sub.num),
       "pij"   = drop(opt$pij)[vindex:(vindex+m[sub.num]-1)],
       "cpij"  = drop(opt$cpij)[vindex:(vindex+m[sub.num]-1)])
   }
@@ -195,9 +203,12 @@ fittedcurve <- function(object, text = "fitted curve", ..., include.CI = FALSE)
   else if (devcomp$dims["CS"] == 1) corrStruct <- "cs"
   else if (devcomp$dims["AR1"] == 1) corrStruct <- "ar1"
 
-  obj <- new("gee_jmcm", m, Y, X, Z, W, corrStruct, rho)
-  sd  <- obj$get_sd(theta)
-  fim <- obj$get_fim(theta)
+  ## obj <- new("gee_jmcm", m, Y, X, Z, W, corrStruct, rho)
+  ## sd  <- obj$get_sd(theta)
+  ## fim <- obj$get_fim(theta)
+  obj <- .Call("gee_jmcm__new", m, Y, X, Z, W, corrStruct, rho)
+  sd  <- .Call("gee_jmcm__get_sd", obj, theta)
+  fim <- .Call("gee_jmcm__get_fim", obj, theta)
 
   # initialization
   opt <- object@opt
@@ -894,8 +905,10 @@ GenerateCattleMAR <- function(dropout.rate)
 #'
 #' @export
 CalculateIPWprob <- function(m, Y, order, alpha, sub.num = 0) {
-  obj <- new("ipw", m, Y, order)
-  pij <- obj$get_p(alpha)
+  ## obj <- new("ipw", m, Y, order)
+  ## pij <- obj$get_p(alpha)
+  obj <- .Call("ipw__new", m, Y, order)
+  pij <- .Call("ipw__get_p", obj, alpha)
 
   if (sub.num != 0) {
     if (sub.num == 1) vindex = 1
@@ -921,8 +934,10 @@ CalculateIPWprob <- function(m, Y, order, alpha, sub.num = 0) {
 #'
 #' @export
 CalculateIPWcumprob <- function(m, Y, order, alpha, sub.num = 0) {
-  obj <- new("ipw", m, Y, order)
-  Pi <- obj$get_Pi(alpha)
+  ## obj <- new("ipw", m, Y, order)
+  ## Pi <- obj$get_Pi(alpha)
+  obj <- .Call("ipw__new", m, Y, order)
+  Pi <- .Call("ipw__get_Pi", obj, alpha)
 
   if (sub.num != 0) {
     if (sub.num == 1) vindex = 1
