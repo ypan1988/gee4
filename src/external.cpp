@@ -384,6 +384,23 @@ Rcpp::List geerfit_ar1(arma::uvec m,
 
 }
 
+// RCPP_EXPOSED_CLASS(gee_link_mode);
+// RCPP_EXPOSED_CLASS(gee_corr_mode);
+// RCPP_MODULE(mod_gee_jmcm) {
+//   using namespace Rcpp;
+//   using namespace arma;
+//   using namespace gee;
+
+//   class_<gee_jmcm>("gee_jmcm")
+
+//     .constructor<uvec,vec,mat,mat,mat,double,gee_link_mode,gee_corr_mode>()
+
+//     .property("m_", &gee_jmcm::get_m)
+//     .property("Y_", &gee_jmcm::get_Y)
+//     .property("X_", &gee_jmcm::get_X)
+//     ;
+// }
+
 RcppExport SEXP gee_jmcm__new(SEXP m_, SEXP Y_, SEXP X_, SEXP Z_, SEXP W_,
                               SEXP corrStruct_, SEXP rho_) {
   arma::uvec m = Rcpp::as<arma::uvec>(m_);

@@ -77,12 +77,12 @@ namespace gee {
 
       H_ = arma::ones<arma::vec>(N);
       use_ipw_ = false;
-      
+
       tht_ = arma::zeros<arma::vec>(n_bta + n_lmd + n_gma);
       bta_ = arma::zeros<arma::vec>(n_bta);
       lmd_ = arma::zeros<arma::vec>(n_lmd);
       gma_ = arma::zeros<arma::vec>(n_gma);
-      
+
       Xbta_ = arma::zeros<arma::vec>(N);
       Zlmd_ = arma::zeros<arma::vec>(N);
       Wgma_ = arma::zeros<arma::vec>(W_.n_rows);
@@ -92,11 +92,11 @@ namespace gee {
 
       if (debug) Rcpp::Rcout << "gee_jmcm object created" << std::endl;
     }
-    
+
     ~gee_jmcm(){};
-    
+
     void set_free_param(const int n);
-    
+
     void set_params(const arma::vec &x);
     arma::vec get_theta() const;
     void set_beta(const arma::vec &beta);
@@ -106,13 +106,13 @@ namespace gee {
     void set_gamma(const arma::vec &gamma);
     arma::vec get_gamma() const;
     void set_weights(const arma::vec &H);
-    
+
     arma::vec operator()(const arma::vec &x);
 
     void UpdateGEES(const arma::vec &x);
     void UpdateParam(const arma::vec &x);
     void UpdateModel();
-  
+
     void UpdateBeta();
     void UpdateLambda();
     void UpdateGamma();
@@ -126,16 +126,16 @@ namespace gee {
     arma::vec get_Resid(const arma::uword i) const;
     arma::mat get_D(const arma::uword i) const;
     arma::mat get_T(const arma::uword i) const;
-    
+
     arma::vec get_mu(const arma::uword i) const;
     arma::mat get_Sigma(const arma::uword i) const;
-    
+
     arma::mat get_Sigma_inv(const arma::uword i) const;
     arma::mat get_weights_sqrt(const arma::uword i) const;
 
     arma::mat get_fim() const; // get the fisher information matrix
     arma::vec get_sd() const;  // get the standand deviation of params
-    
+
     bool learn(const arma::uvec &m, const arma::mat &Y, const arma::mat &X,
                const arma::mat &Z, const arma::mat &W,
                const gee_link_mode &link_mode, const gee_corr_mode &corr_mode,
@@ -183,7 +183,7 @@ namespace gee {
     double rho_;
     gee_link_mode link_mode_;
     gee_corr_mode corr_mode_;
-    
+
     bool fs_iterate(const gee_link_mode &link_mode,
                     const gee_corr_mode &corr_mode, const double rho,
                     const arma::vec &start, const arma::uword max_iter,
@@ -193,7 +193,7 @@ namespace gee {
   };
 
   inline void gee_jmcm::set_free_param(const int n) { free_param_ = n; }
-  
+
   inline void gee_jmcm::set_params(const arma::vec &x) {
 
     int fp2 = free_param_;
@@ -235,7 +235,7 @@ namespace gee {
     use_ipw_ = true;
     H_ = H;
   }
-  
+
   inline arma::uword gee_jmcm::get_m(const arma::uword i) const { return m_(i); }
 
   inline arma::vec gee_jmcm::get_Y(const arma::uword i) const {
@@ -341,21 +341,21 @@ namespace gee {
     }
     return mui;
   }
-  
+
   inline arma::mat gee_jmcm::get_Sigma(const arma::uword i) const {
     int debug = 0;
-    
+
     arma::mat Ti = get_T(i);
     arma::mat Ti_inv = arma::pinv(Ti);
     arma::mat Di = get_D(i);
-    
+
     if (debug) {
       Ti.print("Ti = ");
       Di.print("Di = ");
     }
     return Ti_inv * Di * Ti_inv.t();
   }
-  
+
   inline arma::mat gee_jmcm::get_Sigma_inv(const arma::uword i) const {
     arma::mat Ti = get_T(i);
     arma::mat Di = get_D(i);
@@ -366,7 +366,7 @@ namespace gee {
   inline arma::mat gee_jmcm::get_weights_sqrt(const arma::uword i) const {
 
     int debug = 0;
-    
+
     arma::mat result = arma::eye(m_(i), m_(i));
     if (i == 0) {
       if (debug) Rcpp::Rcout << "i = " << i << std::endl;
@@ -405,7 +405,7 @@ namespace gee {
         arma::mat H_sqrt = get_weights_sqrt(i);
         Sigmai_inv = H_sqrt * Sigmai_inv * H_sqrt;
       }
-      
+
       arma::mat deriv1;
       // arma::vec yi_tilde;
       if (link_mode_ == identity_link) {
@@ -423,14 +423,14 @@ namespace gee {
       arma::vec di2 = arma::pow(Di.diag(), 1);
       arma::vec logdi2 = arma::log(arma::pow(Di.diag(), 1));
       arma::mat Di_inv = arma::diagmat(arma::pow(Di.diag(), -1));
-    
+
       arma::mat Ai_sqrt_inv = 1 / arma::datum::sqrt2 * Di_inv;
       arma::mat Ri_inv;
-    
+
       if (corr_mode_ == Identity_corr) Ri_inv = arma::eye(mi, mi);
       else if (corr_mode_ == CompSymm_corr) Ri_inv = dragonwell::corr_cs(rho_, mi).i();
       else if (corr_mode_ == AR1_corr) Ri_inv = dragonwell::corr_ar1(rho_, mi).i();
-    
+
       arma::mat cov_inv = Ai_sqrt_inv * Ri_inv * Ai_sqrt_inv;
       if (use_ipw_) {
         arma::mat H_sqrt = get_weights_sqrt(i);
@@ -441,10 +441,10 @@ namespace gee {
       for (arma::uword t = 1; t <= mi; ++t) {
         deriv2.col(t - 1) *= arma::as_scalar(di(t - 1));
       }
-    
+
       arma::vec epsi2 = arma::pow(Ti * ri, 2);
       arma::vec epsi2_tilde = epsi2 - di2 + Di * logdi2;
-    
+
       fim_lmd += deriv2 * cov_inv * deriv2.t();
 
       // Compute fisher information matrix(gamma)
@@ -459,7 +459,7 @@ namespace gee {
       }
 
       arma::uword rindex = 0;
-      
+
       arma::mat deriv3 = arma::zeros<arma::mat>(n_gma, mi);
       for (arma::uword j = 2; j <= mi; ++j) {
         for (arma::uword k = 1; k <= (j - 1); ++k) {
@@ -467,14 +467,14 @@ namespace gee {
           ++rindex;
         }
       }
-      
+
       fim_gma += deriv3 * Di_inv * deriv3.t();
     }
 
     fim.submat(0, 0, n_bta-1, n_bta-1) = fim_bta;
     fim.submat(n_bta, n_bta, n_bta+n_lmd-1, n_bta+n_lmd-1) = fim_lmd;
     fim.submat(n_bta+n_lmd, n_bta+n_lmd, n_bta+n_lmd+n_gma-1, n_bta+n_lmd+n_gma-1) = fim_gma;
-    
+
     return fim;
   }
 
@@ -482,7 +482,7 @@ namespace gee {
     arma::uword n_bta = X_.n_cols;
     arma::uword n_lmd = Z_.n_cols;
     arma::uword n_gma = W_.n_cols;
-    
+
     arma::mat fim = get_fim();
     arma::mat fim_bta = fim.submat(0, 0, n_bta-1, n_bta-1);
     arma::mat fim_lmd = fim.submat(n_bta, n_bta, n_bta+n_lmd-1, n_bta+n_lmd-1);

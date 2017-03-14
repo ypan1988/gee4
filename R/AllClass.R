@@ -78,4 +78,3 @@ setMethod("initialize", "ipw", function(.Object, ...) {
   .Object@pointer <- .Call(ipw_method("new"), ...)
   .Object
 })
-
