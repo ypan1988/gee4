@@ -245,7 +245,6 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
 
 }
 
-
 // [[Rcpp::export]]
 Rcpp::List geerfit_id(arma::uvec m,
                       arma::vec Y,

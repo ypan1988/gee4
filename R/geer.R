@@ -1,4 +1,4 @@
-#' @useDynLib gee4
+#' @useDynLib gee4, .registration = TRUE
 #' @importFrom Rcpp evalCpp
 NULL
 
