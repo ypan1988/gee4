@@ -9,5 +9,5 @@ gee4: Generalised Estimating Equations in R.
 
 Get the released version from CRAN:
 ```R
-install.packages("jmcm")
+install.packages("gee4")
 ```
