@@ -9,7 +9,7 @@
 #'@param trace whether or not the optimization iteration should be printed.
 #'@export
 ipw_estimation <- function(m, Y, order, trace = FALSE) {
-    .Call('gee4_ipw_estimation', PACKAGE = 'gee4', m, Y, order, trace)
+    .Call(`_gee4_ipw_estimation`, m, Y, order, trace)
 }
 
 #'@title Fit (Weighted) Generalized Estimating Equations based on MCD
@@ -31,18 +31,18 @@ ipw_estimation <- function(m, Y, order, trace = FALSE) {
 #'@param errorMsg whether or not the error message should be print.
 #'@export
 gees_estimation <- function(m, Y, X, Z, W, H, method, corrStruct, rho, start, trace = FALSE, profile = TRUE, errorMsg = FALSE) {
-    .Call('gee4_gees_estimation', PACKAGE = 'gee4', m, Y, X, Z, W, H, method, corrStruct, rho, start, trace, profile, errorMsg)
+    .Call(`_gee4_gees_estimation`, m, Y, X, Z, W, H, method, corrStruct, rho, start, trace, profile, errorMsg)
 }
 
 geerfit_id <- function(m, Y, X, Z, W, rho, start, trace = FALSE, profile = TRUE, errorMsg = FALSE) {
-    .Call('gee4_geerfit_id', PACKAGE = 'gee4', m, Y, X, Z, W, rho, start, trace, profile, errorMsg)
+    .Call(`_gee4_geerfit_id`, m, Y, X, Z, W, rho, start, trace, profile, errorMsg)
 }
 
 geerfit_cs <- function(m, Y, X, Z, W, rho, start, trace = FALSE, profile = TRUE, errorMsg = FALSE) {
-    .Call('gee4_geerfit_cs', PACKAGE = 'gee4', m, Y, X, Z, W, rho, start, trace, profile, errorMsg)
+    .Call(`_gee4_geerfit_cs`, m, Y, X, Z, W, rho, start, trace, profile, errorMsg)
 }
 
 geerfit_ar1 <- function(m, Y, X, Z, W, rho, start, trace = FALSE, profile = TRUE, errorMsg = FALSE) {
-    .Call('gee4_geerfit_ar1', PACKAGE = 'gee4', m, Y, X, Z, W, rho, start, trace, profile, errorMsg)
+    .Call(`_gee4_geerfit_ar1`, m, Y, X, Z, W, rho, start, trace, profile, errorMsg)
 }
 

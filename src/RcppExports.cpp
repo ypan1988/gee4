@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // ipw_estimation
 Rcpp::List ipw_estimation(arma::uvec m, arma::vec Y, arma::uword order, bool trace);
-RcppExport SEXP gee4_ipw_estimation(SEXP mSEXP, SEXP YSEXP, SEXP orderSEXP, SEXP traceSEXP) {
+RcppExport SEXP _gee4_ipw_estimation(SEXP mSEXP, SEXP YSEXP, SEXP orderSEXP, SEXP traceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -22,7 +22,7 @@ END_RCPP
 }
 // gees_estimation
 Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, arma::mat W, arma::vec H, std::string method, std::string corrStruct, double rho, arma::vec start, bool trace, bool profile, bool errorMsg);
-RcppExport SEXP gee4_gees_estimation(SEXP mSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP WSEXP, SEXP HSEXP, SEXP methodSEXP, SEXP corrStructSEXP, SEXP rhoSEXP, SEXP startSEXP, SEXP traceSEXP, SEXP profileSEXP, SEXP errorMsgSEXP) {
+RcppExport SEXP _gee4_gees_estimation(SEXP mSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP WSEXP, SEXP HSEXP, SEXP methodSEXP, SEXP corrStructSEXP, SEXP rhoSEXP, SEXP startSEXP, SEXP traceSEXP, SEXP profileSEXP, SEXP errorMsgSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -45,7 +45,7 @@ END_RCPP
 }
 // geerfit_id
 Rcpp::List geerfit_id(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, arma::mat W, double rho, arma::vec start, bool trace, bool profile, bool errorMsg);
-RcppExport SEXP gee4_geerfit_id(SEXP mSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP WSEXP, SEXP rhoSEXP, SEXP startSEXP, SEXP traceSEXP, SEXP profileSEXP, SEXP errorMsgSEXP) {
+RcppExport SEXP _gee4_geerfit_id(SEXP mSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP WSEXP, SEXP rhoSEXP, SEXP startSEXP, SEXP traceSEXP, SEXP profileSEXP, SEXP errorMsgSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -65,7 +65,7 @@ END_RCPP
 }
 // geerfit_cs
 Rcpp::List geerfit_cs(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, arma::mat W, double rho, arma::vec start, bool trace, bool profile, bool errorMsg);
-RcppExport SEXP gee4_geerfit_cs(SEXP mSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP WSEXP, SEXP rhoSEXP, SEXP startSEXP, SEXP traceSEXP, SEXP profileSEXP, SEXP errorMsgSEXP) {
+RcppExport SEXP _gee4_geerfit_cs(SEXP mSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP WSEXP, SEXP rhoSEXP, SEXP startSEXP, SEXP traceSEXP, SEXP profileSEXP, SEXP errorMsgSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -85,7 +85,7 @@ END_RCPP
 }
 // geerfit_ar1
 Rcpp::List geerfit_ar1(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, arma::mat W, double rho, arma::vec start, bool trace, bool profile, bool errorMsg);
-RcppExport SEXP gee4_geerfit_ar1(SEXP mSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP WSEXP, SEXP rhoSEXP, SEXP startSEXP, SEXP traceSEXP, SEXP profileSEXP, SEXP errorMsgSEXP) {
+RcppExport SEXP _gee4_geerfit_ar1(SEXP mSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP WSEXP, SEXP rhoSEXP, SEXP startSEXP, SEXP traceSEXP, SEXP profileSEXP, SEXP errorMsgSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;

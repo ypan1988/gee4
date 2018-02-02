@@ -19,11 +19,11 @@
 */
 
 /* .Call calls */
-extern SEXP gee4_geerfit_ar1(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP gee4_geerfit_cs(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP gee4_geerfit_id(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP gee4_gees_estimation(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP gee4_ipw_estimation(SEXP, SEXP, SEXP, SEXP);
+extern SEXP _gee4_geerfit_ar1(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _gee4_geerfit_cs(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _gee4_geerfit_id(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _gee4_gees_estimation(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _gee4_ipw_estimation(SEXP, SEXP, SEXP, SEXP);
 extern SEXP gee_jmcm__new(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP gee_jmcm__get_m(SEXP, SEXP);
 extern SEXP gee_jmcm__get_Y(SEXP, SEXP);
@@ -42,11 +42,11 @@ extern SEXP ipw__get_Pi(SEXP, SEXP);
 
 
 static const R_CallMethodDef CallEntries[] = {
-    {"gee4_geerfit_ar1",     (DL_FUNC) &gee4_geerfit_ar1,     10},
-    {"gee4_geerfit_cs",      (DL_FUNC) &gee4_geerfit_cs,      10},
-    {"gee4_geerfit_id",      (DL_FUNC) &gee4_geerfit_id,      10},
-    {"gee4_gees_estimation", (DL_FUNC) &gee4_gees_estimation, 13},
-    {"gee4_ipw_estimation",  (DL_FUNC) &gee4_ipw_estimation,   4},
+    {"_gee4_geerfit_ar1",     (DL_FUNC) &_gee4_geerfit_ar1,     10},
+    {"_gee4_geerfit_cs",      (DL_FUNC) &_gee4_geerfit_cs,      10},
+    {"_gee4_geerfit_id",      (DL_FUNC) &_gee4_geerfit_id,      10},
+    {"_gee4_gees_estimation", (DL_FUNC) &_gee4_gees_estimation, 13},
+    {"_gee4_ipw_estimation",  (DL_FUNC) &_gee4_ipw_estimation,   4},
     {"gee_jmcm__new",        (DL_FUNC) &gee_jmcm__new,         7},
     {"gee_jmcm__get_m",      (DL_FUNC) &gee_jmcm__get_m,       2},
     {"gee_jmcm__get_Y",      (DL_FUNC) &gee_jmcm__get_Y,       2},
