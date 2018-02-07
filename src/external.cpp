@@ -139,20 +139,28 @@ Rcpp::List gees_estimation(arma::uvec m, arma::vec Y, arma::mat X, arma::mat Z, 
       arma::vec xold = x;            // store x
       // double fold = f;               // store f
 
-      if (debug) Rcpp::Rcout << "Update beta..." << std::endl;
       gees.UpdateBeta();
-      if (debug) gees.get_beta().t().print("beta = ");
-      if (debug) Rcpp::Rcout << "Update lambda..." << std::endl;
       gees.UpdateLambda();
-      if (debug) gees.get_lambda().t().print("lambda = ");
-      if (debug) Rcpp::Rcout << "Update gamma..." << std::endl;
       gees.UpdateGamma();
-      if (debug) gees.get_gamma().t().print("gamma = ");
-      if (debug) Rcpp::Rcout << "Update theta..." << std::endl;
       x = gees.get_theta();
-      if (debug) x.t().print("xnew = ");
       arma::vec p = x - xold;
-
+      
+      // check if there are NA/INF values in x
+      bool has_na_inf_value = false;
+      for (const auto &elem : x) 
+      {
+        if (elem ==  std::numeric_limits<double>::infinity() ||
+            elem == -std::numeric_limits<double>::infinity() || elem != elem)
+          has_na_inf_value = true;
+      }
+      if (has_na_inf_value) {
+        Rcpp::Rcerr << "Error: NA/INF value generated in parameter estimation.\n"
+                    << "Please specify profile = FALSE in geerControl() and try again."
+                    << std::endl;
+        x = xold;
+        break;  
+      }
+      
       check = linesearch.GetStep(fmin, &f, &x, g, p, stpmax);
 
       f = fmin(x);
